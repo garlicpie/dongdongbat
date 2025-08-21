@@ -1211,5 +1211,7 @@ load(); if(!Number.isFinite(jackpot) || jackpot<=0) jackpot = baseJackpot(); upd
 document.addEventListener('visibilitychange', ()=>{ if(document.hidden) FX.stop(); else if(fxToggle.checked) FX.start(); });
 
 }
-</script></body>
+</script>
+<button class="btn-ghost" id="resetBtn">초기화</button>
+</body>
 </html>
