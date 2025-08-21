@@ -154,7 +154,7 @@
     <div class="btn-row">
       <button class="btn-odd" id="oddBtn" aria-label="홀짝 게임: 홀에 베팅">홀수</button>
       <button class="btn-even" id="evenBtn" aria-label="홀짝 게임: 짝에 베팅">짝수</button>
-      <button class="btn-ghost" id="resetBtn" aria-label="초기화">초기화</button>
+      <button class="btn-ghost" id="resetBtnInLine" aria-label="초기화">초기화</button>
     </div>
     <div id="result" class="display" aria-live="polite">결과 대기중…</div>
   </div>
@@ -717,7 +717,6 @@ const FX = (function(){
 /* ===== 잭팟/역잭팟 체크(캡차+쿨다운) ===== */
 function afterJackpotCooldown(){
   lastGlobalDisable = Date.now() + CAPTCHA_COOLDOWN_MS;
-  setGlobalInputs(false);
   setTimeout(()=>{
     openCaptcha(()=>{
       setGlobalInputs(true);
@@ -983,6 +982,7 @@ function doReset(){
   balanceHistory=[]; drawChart();
 }
 $("#resetBtn").addEventListener("click", openResetPanel);
+$("#resetBtnInline").addEventListener("click", openResetPanel); // 섹션 안 버튼
 
 /* ===== 게임 공통 보상 계산 ===== */
 function winPayout(base){ return Math.floor(base * rewardBoost); }
