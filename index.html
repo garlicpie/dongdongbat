@@ -730,13 +730,13 @@ function jackpotChecks(ctx="게임", baseBet=0){
     const loss = Math.min(balance, jackpot);
     applyDelta(-loss, "REVERSE JACKPOT");
     jackpotFX("neg");
-    pushLog("역잭팟",`-${fmt(loss)} (${ctx})","lose");
+    pushLog("역잭팟", `-${fmt(loss)} (${ctx})`, "lose");
     afterJackpotCooldown();
     return true;
   }
   if(rng(currentJpProb())){
     if(baseBet>0){
-      const prize = Math.floor(baseBet * 100); // 777 외에도 슬롯 잭팟은 강화 ×100
+      const prize = Math.floor(baseBet * 100); // 슬롯 잭팟 ×100
       applyDelta(+prize, "슬롯 잭팟");
     }else{
       const prize = jackpot;
@@ -746,7 +746,7 @@ function jackpotChecks(ctx="게임", baseBet=0){
       updateUI();
     }
     jackpotFX("pos");
-    pushLog("JACKPOT",`+${fmt(baseBet?Math.floor(baseBet*100):jackpot)} (${ctx})","win");
+    pushLog("JACKPOT", `+${fmt(baseBet ? Math.floor(baseBet*100) : jackpot)} (${ctx})`, "win");
     afterJackpotCooldown();
     return true;
   }
