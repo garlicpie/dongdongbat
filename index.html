@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>『동언뱃』 </title>
+<style>
+  :root{
+    --bg:#0a0c13; --panel:#101421; --panel2:#0c111c; --line:#1a2234;
+    --text:#eaf0ff; --muted:#9aa6bf;
+    --odd:#d93a6b; --even:#1fb98a; --rand:#2b8cff; --ghost:#0f1525;
+    --gold:#f6d36b; --good:#19e3a1; --bad:#ff5a5a;
+    --btn-justify:flex-start;
+  }
+  .theme-light{
+    --bg:#f6f7fb; --panel:#ffffff; --panel2:#f0f3fa; --line:#e3e7f2;
+    --text:#111827; --muted:#475569; --ghost:#eaeef7;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; color:var(--text);
+    font-family: ui-sans-serif,system-ui,Segoe UI,Roboto,Arial;
+    background: radial-gradient(1200px 600px at 10% 10%,#10152a 0%,#0b0f19 45%,#070a11 100%);
+  }
+  .theme-light{ background: linear-gradient(180deg,#f8fafc,#eef2ff); }
+
+  /* WebGL 배경 (항상 보이도록 위에 + 스크린 블렌드) */
+  #fxCanvas{ position:fixed; inset:0; z-index:0; display:block; pointer-events:none; mix-blend-mode:screen }
+
+  /* ===== 배너 ===== */
+  .wrap-sticky{ position: sticky; top: 0; z-index: 50 }
+  .ext-banner{
+    display:flex; align-items:center; gap:10px; padding:8px 10px;
+    background:var(--panel); border:1px solid var(--line); border-radius:10px; margin:8px;
+  }
+  .ext-banner img{max-height:52px; display:block; border-radius:8px}
+  .ext-controls{margin-left:auto; display:flex; align-items:center; gap:8px}
+  .ext-btn{
+    border:none; background:#0e1320; color:#cbd7f1; border:1px solid #1b263c;
+    padding:8px 10px; border-radius:6px; cursor:pointer
+  }
+  .theme-light .ext-btn{ background:#fff; color:#111; border-color:#d6d9e5 }
+  .ext-collapsed{display:flex; align-items:center; gap:10px; padding:8px 10px; margin:8px;
+    background:var(--panel2); border:1px dashed var(--line); border-radius:10px}
+  .ext-collapsed[hidden]{display:none}
+
+  /* ===== 상단 잔액 바 ===== */
+  .balance-bar{
+    position: sticky; top: 76px; z-index: 40;
+    margin: 0 8px 8px; padding: 10px 12px; font-weight:900;
+    background: linear-gradient(180deg,var(--panel),var(--panel2));
+    border:1px solid var(--line); border-radius:10px; display:flex; gap:12px; align-items:center;
+  }
+  .balance-pill{ padding:6px 10px; border-radius:999px; background:#0c111d; border:1px solid #18233a }
+  .theme-light .balance-pill{ background:#fff; border-color:#e3e7f2 }
+
+  /* ===== 레이아웃 ===== */
+  .container{ max-width: 1080px; margin: 8px auto 80px; display:grid; gap: 14px; padding: 0 8px; position:relative; z-index:10 }
+  .card{ background:linear-gradient(180deg,var(--panel),var(--panel2)); border:1px solid var(--line); border-radius:14px; padding:16px }
+  .title{display:flex; align-items:center; justify-content:space-between}
+  h1,h2{margin:0; font-size: clamp(18px, 2.2vw, 24px)}
+  .sub{color:var(--muted); font-size:12px}
+
+  .jackpot{display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; font-weight:800}
+  .jackpot .num{color:var(--gold)}
+
+  /* ===== 버튼 ===== */
+  .btn-row{display:flex; flex-wrap:wrap; gap:8px; justify-content: var(--btn-justify)}
+  button{
+    border:none; border-radius:6px; padding:12px 14px; font-weight:800; color:#fff; cursor:pointer;
+    transition:transform .1s ease, opacity .12s ease, filter .12s ease;
+  }
+  .btn-odd{background:linear-gradient(180deg,#ef477a,#a41e48); border:1px solid #5e0f2b}
+  .btn-even{background:linear-gradient(180deg,#25c994,#147a5d); border:1px solid #0c5541}
+  .btn-rand{background:linear-gradient(180deg,#2e90ff,#0a3d9e); border:1px solid #0a2b69}
+  .btn-ghost{background:linear-gradient(180deg,#0f1423,#0a0f1c); color:#cbd7f1; border:1px solid #1b263c}
+  .theme-light .btn-ghost{ background:#fff; color:#111; border-color:#d6d9e5 }
+  button:hover{ transform: translateY(-1px) }
+  button:active{ transform: translateY(0) scale(.98) }
+
+  .stat-row{display:flex; flex-wrap:wrap; gap:8px}
+  .stat{background:#0c111d; border:1px solid #18233a; border-radius:8px; padding:8px 10px; font-size:12px}
+  .theme-light .stat{ background:#fff; border-color:#e3e7f2 }
+  .display{margin-top:10px; background:#0c111d; border:1px solid #18233a; border-radius:10px; padding:12px; font-weight:800; opacity:0; transform:translateY(6px); transition:opacity .2s, transform .2s}
+  .display.show{opacity:1; transform:none}
+  .theme-light .display{ background:#fff; border-color:#e3e7f2 }
+
+  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:10px}
+  .item{background:#0c111d; border:1px solid #18233a; border-radius:10px; padding:10px}
+  .theme-light .item{ background:#fff; border-color:#e3e7f2 }
+  .muted{color:var(--muted)}
+
+  .log{display:grid; gap:8px; max-height:460px; overflow:auto}
+  .row{display:flex; justify-content:space-between; gap:10px; background:#0c111d; border:1px solid #18233a; border-radius:8px; padding:8px 10px; font-size:13px}
+  .theme-light .row{ background:#fff; border-color:#e3e7f2 }
+  .pill{font-size:11px; padding:2px 8px; border-radius:999px; border:1px solid #2b3a59}
+  .pill.win{color:var(--good); border-color:rgba(25,227,161,.4)}
+  .pill.lose{color:var(--bad); border-color:rgba(255,90,90,.45)}
+  .pill.neutral{color:#a9b4cf}
+
+  /* ===== 동전 ===== */
+  .coin{ width:90px; height:90px; margin:8px auto; perspective: 800px; }
+  .coin-inner{
+    width:100%; height:100%; border-radius:50%;
+    background:
+      radial-gradient(55% 55% at 30% 30%, #ffe39b, #caa04d 70%, #8b6a29 100%),
+      repeating-conic-gradient(from 0deg, rgba(255,255,255,.25) 0 2deg, transparent 2deg 6deg);
+    border:2px solid #8d6a23; color:#2b1a00; font-weight:900; display:flex; align-items:center; justify-content:center;
+    transform-style: preserve-3d; position: relative; will-change: transform; backface-visibility: hidden;
+  }
+  .coin-inner::after{
+    content:""; position:absolute; inset:0; border-radius:50%;
+    background: radial-gradient(60% 60% at 30% 30%, rgba(255,255,255,.35), transparent 60%);
+    mix-blend-mode: screen; pointer-events:none;
+  }
+  .coin-face{ transform: translateZ(2px) }
+  .coin-inner.anim{ animation: coinflip .9s cubic-bezier(.2,.6,.2,1) }
+  @keyframes coinflip{ 0%{ transform: rotateY(0deg) } 100%{ transform: rotateY(900deg) } }
+
+  /* ===== 슬롯 ===== */
+  .slot-frame{
+    margin:6px auto; padding:10px; border-radius:12px;
+    background: linear-gradient(180deg,#151a28,#0c111d);
+    border:1px solid #1b2438; box-shadow: inset 0 0 0 1px rgba(255,255,255,.03);
+  }
+  .reels{ display:flex; gap:8px; justify-content:center }
+  .reel{
+    width:96px; height:64px; display:flex; align-items:center; justify-content:center;
+    background:#0c111d; border:1px solid #18233a; border-radius:8px; font-weight:900; font-size:18px; color:var(--text)
+  }
+  .sym-7{ color:#ff4d4d; text-shadow:0 0 6px rgba(255,77,77,.6) }
+  .theme-light .reel{ background:#fff; border-color:#e3e7f2; color:#111 }
+  .theme-light .slot-frame{ background:#fff; border-color:#e3e7f2; box-shadow:none }
+  .theme-light .sym-7{ color:#d22; text-shadow:none }
+
+  /* ===== 777 잭팟 이펙트 (최상위) ===== */
+  .boom{position:fixed; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none; z-index:10000}
+  .boom.hide{display:none}
+  .boom-text{font-size:76px; font-weight:900; color:#ffef9c; text-shadow:0 0 22px rgba(255,210,80,.7), 0 0 48px rgba(255,210,80,.35); text-align:center; transform:scale(0.9)}
+  .ring{position:absolute; width:10px; height:10px; border:3px solid rgba(255,230,120,.8); border-radius:999px; opacity:.9; transform: scale(0) }
+  .flash{position:absolute; inset:0; background:radial-gradient(ellipse at center, rgba(255,255,255,.55), transparent 60%); opacity:0}
+  .beam{position:absolute; width:2px; height:38vh; background:linear-gradient(180deg, rgba(255,255,190,.0), rgba(255,255,160,.85), rgba(255,255,190,.0)); filter: blur(0.7px); transform-origin:center bottom; opacity:.0}
+  .particle{position:absolute; width:6px; height:6px; background:#ffd74a; border-radius:2px; opacity:.9}
+
+  /* 초기화 버튼 고정 */
+  #resetBtn{ position: fixed; right: 24px; bottom: 24px; z-index: 300 }
+
+  /* 그래프 캔버스 */
+  #balanceChart{ width:100%; height:180px; background:var(--panel2); border:1px solid var(--line); border-radius:8px }
+</style>
+</head>
+<body>
+  <!-- WebGL Background -->
+  <canvas id="fxCanvas"></canvas>
+
+  <!-- 배너 -->
+  <div class="wrap-sticky">
+    <div id="extBanner" class="ext-banner" hidden>
+      <a href="https://i3.ruliweb.com/ori/22/06/25/1819b4dc38f4cbcbb.gif" target="_blank" rel="noopener">
+        <img src="https://i3.ruliweb.com/ori/22/06/25/1819b4dc38f4cbcbb.gif" alt="프로모 배너">
+      </a>
+      <div class="ext-controls">
+        <label class="muted" style="font-size:12px"><input type="checkbox" id="hide1d"> 1일 동안 안 보기</label>
+        <button class="ext-btn" id="collapseBtn">접기</button>
+        <button class="ext-btn" id="closeBtn">닫기</button>
+        <button class="ext-btn" id="disableBannerBtn">비활성화</button>
+      </div>
+    </div>
+    <div id="extCollapsed" class="ext-collapsed" hidden>
+      <span class="muted">프로모 배너가 접혀 있습니다.</span>
+      <button class="ext-btn" id="expandBtn">펼치기</button>
+    </div>
+  </div>
+
+  <!-- 스티키 잔액 바 -->
+  <div id="balanceBar" class="balance-bar">
+    <div><b>『동언뱃』</b></div>
+    <div class="balance-pill">현재 금액: <span id="balanceTop">0</span></div>
+    <div class="balance-pill">잭팟: <span id="jackpotTop">₩ 1,200,000</span> (<span id="jackpotP"></span>)</div>
+  </div>
+
+  <div class="container">
+    <!-- 헤더/상태 -->
+    <section class="card">
+      <div class="title">
+        <h1>『동언뱃』</h1>
+        <div class="sub">서버 상태: 정상 · 현재 기본 승률: <b id="p-global">47%</b></div>
+      </div>
+      <div class="jackpot">
+        <div>JACKPOT <span class="num" id="jackpot">₩ 1,200,000</span></div>
+        <div class="sub">확률: <b id="jackpotP2"></b> / 플레이</div>
+      </div>
+
+      <div class="stat-row" style="margin-top:8px">
+        <div class="stat">승리: <b id="wins">0</b></div>
+        <div class="stat">패배: <b id="losses">0</b></div>
+        <div class="stat">최대 보유금: <b id="peak">0</b></div>
+        <div class="stat">역대 최소금: <b id="minbal">0</b></div>
+      </div>
+    </section>
+
+    <!-- 설정 + 업그레이드 + 금융 -->
+    <section class="card">
+      <div class="title"><h2>환경설정</h2><div class="sub">정렬/테마/배경효과/확률 업그레이드는 로컬에 저장</div></div>
+      <div class="btn-row" style="gap:12px; align-items:center">
+        <label>버튼 정렬:
+          <select id="alignSelect" style="padding:8px 10px; border-radius:8px; border:1px solid var(--line); background:var(--panel2); color:var(--text)">
+            <option value="flex-start">왼쪽</option>
+            <option value="center">가운데</option>
+            <option value="flex-end">오른쪽</option>
+          </select>
+        </label>
+        <label style="margin-left:10px">테마:
+          <select id="themeSelect" style="padding:8px 10px; border-radius:8px; border:1px solid var(--line); background:var(--panel2); color:var(--text)">
+            <option value="dark">다크</option>
+            <option value="light">라이트</option>
+          </select>
+        </label>
+        <label style="margin-left:10px; display:flex; gap:6px; align-items:center">
+          <input id="fxToggle" type="checkbox" checked> 배경 WebGL 효과
+        </label>
+        <button class="btn-ghost" id="savePref">적용</button>
+        <button class="btn-ghost" id="restoreBanner">배너 복구</button>
+      </div>
+      <div class="btn-row" style="gap:12px; margin-top:10px">
+        <button class="btn-rand" id="upgradeBtn">확률 업그레이드</button>
+        <div class="stat">현재 보너스: <b id="bonusPct">+0%</b></div>
+        <div class="stat">다음 비용: <b id="nextCost">₩ 100,000</b></div>
+      </div>
+      <div class="btn-row" style="gap:12px; margin-top:10px">
+        <div class="stat">대출 잔액: <b id="loanOut">₩ 0</b></div>
+        <div class="stat">초당 이자(0.5%): <b id="loanRate">₩ 0</b></div>
+      </div>
+      <div class="btn-row" style="gap:8px; margin-top:8px">
+        <input id="loanAmt" type="number" placeholder="금액(원)" min="0" step="1000" style="flex:1; min-width:120px; border-radius:8px; border:1px solid var(--line); background:var(--panel2); color:var(--text); padding:8px 10px">
+        <button class="btn-odd" id="borrowBtn">돈 빌리기</button>
+        <button class="btn-even" id="repayBtn">돈 갚기</button>
+      </div>
+    </section>
+
+    <!-- 테이블 & 퀵 게임 -->
+    <section class="card">
+      <div class="title"><h2>테이블 & 퀵 게임</h2><div class="sub">홀짝 · 동전 · 하이/로우 · 사다리 — 현재 승률: <b class="pLive"></b></div></div>
+
+      <!-- 홀짝 -->
+      <div class="item" style="margin-bottom:10px">
+        <h4>홀짝 <small>(승률 <b class="pLive"></b>)</small></h4>
+        <div class="btn-row">
+          <button class="btn-odd" id="oddBtn">홀수</button>
+          <button class="btn-even" id="evenBtn">짝수</button>
+          <button class="btn-ghost" id="resetBtn">초기화</button>
+        </div>
+        <div id="result" class="display">결과 대기중…</div>
+      </div>
+
+      <!-- 동전 & 하이/로우 & 사다리 -->
+      <div class="grid">
+        <div class="item">
+          <h4>동전 던지기 <small>(승률 <b class="pLive"></b>)</small></h4>
+          <div class="coin"><div id="coinFace" class="coin-inner"><div class="coin-face">앞</div></div></div>
+          <div class="btn-row">
+            <button class="btn-odd" id="coinH">앞</button>
+            <button class="btn-even" id="coinT">뒤</button>
+          </div>
+          <div id="coinResult" class="display">결과 대기중…</div>
+        </div>
+
+        <div class="item">
+          <h4>하이 / 로우 <small>(승률 <b class="pLive"></b>)</small></h4>
+          <div id="odometer" class="odometer">—</div>
+          <div class="btn-row">
+            <button class="btn-odd" id="lowBtn">LOW</button>
+            <button class="btn-even" id="highBtn">HIGH</button>
+          </div>
+          <div id="hlResult" class="display">결과 대기중…</div>
+        </div>
+
+        <div class="item">
+          <h4>사다리 <small>(승률 <b class="pLive"></b>)</small></h4>
+          <canvas id="ladderCanvas" width="280" height="190" style="width:100%; background:var(--panel2); border:1px solid var(--line); border-radius:8px"></canvas>
+          <div class="btn-row">
+            <button class="btn-odd" id="ladderLeft">LEFT</button>
+            <button class="btn-even" id="ladderRight">RIGHT</button>
+          </div>
+          <div id="ladderResult" class="display">결과 대기중…</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 슬롯 & 룰렛 존 -->
+    <section class="card">
+      <div class="title"><h2>슬롯 & 룰렛 존</h2><div class="sub">단계 감속 · 결과 동기화 · 역잭팟</div></div>
+      <div class="grid">
+        <!-- 슬롯 -->
+        <div class="item">
+          <h4>미니 슬롯 <small>(3개=×2.5, 2개=×0.4, <b class="sym-7">777=잭팟×10</b>)</small></h4>
+          <div class="slot-frame">
+            <div class="reels">
+              <div id="reel1" class="reel">-</div>
+              <div id="reel2" class="reel">-</div>
+              <div id="reel3" class="reel">-</div>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn-rand" id="slotBtn">스핀</button>
+          </div>
+          <div id="slotResult" class="display">결과 대기중…</div>
+        </div>
+
+        <!-- 룰렛 -->
+        <div class="item">
+          <h4>룰렛 <small>(색상베팅 승률 <b class="pLive"></b>)</small></h4>
+          <div class="muted">0~36 · 색상 1:1, 숫자 35:1</div>
+          <div id="rouletteSpin" class="display">대기중…</div>
+          <div class="btn-row" style="margin-top:8px">
+            <button class="btn-odd" data-roulette="RED">RED</button>
+            <button class="btn-even" data-roulette="BLACK">BLACK</button>
+          </div>
+          <div class="btn-row" style="margin-top:6px">
+            <input id="rouletteNum" type="number" placeholder="숫자(0~36)" min="0" max="36" style="flex:1; min-width:120px; border-radius:8px; border:1px solid var(--line); background:var(--panel2); color:var(--text); padding:8px 10px">
+            <button class="btn-ghost" id="rouletteNumBtn">숫자 베팅</button>
+          </div>
+          <div id="rouletteResult" class="display">결과 대기중…</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 로그 + 그래프 -->
+    <section class="card">
+      <div class="title"><h2>베팅 로그</h2><div class="sub">최근 100개 & 보유금 그래프</div></div>
+      <div id="log" class="log"></div>
+      <canvas id="balanceChart" width="1040" height="180"></canvas>
+    </section>
+  </div>
+
+  <!-- 777 잭팟 이펙트 레이어 -->
+  <div id="boom" class="boom hide" aria-hidden="true">
+    <div class="boom-text">777 JACKPOT!</div>
+    <div class="flash" id="flash"></div>
+    <div class="ring" id="ring"></div>
+  </div>
+
+<script>
+/* ========= 안전 바인딩 ========= */
+(function(){ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded', init);} else {init();} })();
+
+function init(){
+
+/* ===== 상수/키 ===== */
+const JACKPOT_BASE=1_200_000, JACKPOT_MIN=500_000, JACKPOT_P=0.002, REVERSE_JP_P=0.002;
+const INTEREST_RATE = 0.005; // 초당 0.5%
+const KEY={BAL:"bal",PEAK:"peak",MIN:"min",W:"wins",L:"loss",J:"jackpot",LOG:"log",
+           B_HIDE:"ext-hide-until",B_COLLAPSE:"ext-collapsed",B_DISABLE:"ext-disabled",
+           THEME:"theme",ALIGN:"align",FX:"fx",UP:"upLevel", LOAN:"loanPrincipal"};
+
+/* ===== 상태 ===== */
+let balance=0, peak=0, minbal=0, wins=0, losses=0, jackpot=JACKPOT_BASE;
+let slotBusy=false; let upLevel=0;
+let loanPrincipal=0; let loanTimer=null;
+let balanceHistory=[];
+let coinSpinTimer=null;
+
+/* ===== DOM ===== */
+const $=s=>document.querySelector(s);
+const balanceTop=$("#balanceTop"), jackpotTop=$("#jackpotTop");
+const peakEl=$("#peak"), minEl=$("#minbal"), winEl=$("#wins"), lossEl=$("#losses");
+const resultDiv=$("#result"), logEl=$("#log");
+const jackpotEl=$("#jackpot"), jpP=$("#jackpotP"), jpP2=$("#jackpotP2");
+const coinRes=$("#coinResult"), coinFace=$("#coinFace");
+const odo=$("#odometer"), hlRes=$("#hlResult");
+const slotRes=$("#slotResult"), r1=$("#reel1"), r2=$("#reel2"), r3=$("#reel3");
+const rouSpin=$("#rouletteSpin"), rouRes=$("#rouletteResult");
+const alignSelect=$("#alignSelect"), themeSelect=$("#themeSelect"), fxToggle=$("#fxToggle");
+const bonusPctEl=$("#bonusPct"), nextCostEl=$("#nextCost"), upgradeBtn=$("#upgradeBtn");
+const fxCanvas=$("#fxCanvas");
+const ladderCanvas=$("#ladderCanvas"), ladderRes=$("#ladderResult");
+const loanOut=$("#loanOut"), loanRate=$("#loanRate"), loanAmt=$("#loanAmt");
+const borrowBtn=$("#borrowBtn"), repayBtn=$("#repayBtn");
+const chartCanvas=$("#balanceChart"), chartCtx=chartCanvas.getContext('2d');
+const pGlobals=[...document.querySelectorAll('.pLive')]; const pGlobal=$("#p-global");
+const ladderBtns=[$("#ladderLeft"), $("#ladderRight")];
+function setBtnDisabled(el,on){ el.disabled=on; el.style.opacity = on ? "0.55" : "1"; el.style.pointerEvents = on ? "none" : "auto"; }
+
+/* ===== 유틸 ===== */
+const fmt=n=>n.toLocaleString("ko-KR");
+const now=()=>new Date().toLocaleString("ko-KR",{hour12:false});
+const randBet=()=> (Math.floor(Math.random()*10)+1)*1000;
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+function rng(p){ return Math.random() < p; }
+function pWin(){ return clamp(0.47 + upLevel*0.01, 0.0, 0.95); }
+const COST_SEQ = [100000,200000,400000,800000,1200000,1600000,2000000];
+function nextCost(){
+  if(upLevel < COST_SEQ.length) return COST_SEQ[upLevel];
+  return COST_SEQ[COST_SEQ.length-1] + (upLevel - COST_SEQ.length + 1) * 400000; // 이후 등차 +40만
+}
+function pushLog(type,msg,pill="neutral"){
+  const row=document.createElement("div"); row.className="row";
+  row.innerHTML=`<span class="muted">${now()}</span><span>${msg}</span><span class="pill ${pill}">${type}</span>`;
+  logEl.prepend(row); while(logEl.children.length>100) logEl.lastChild.remove();
+  try{const arr=[...logEl.querySelectorAll(".row")].slice(0,50).map(n=>n.innerHTML);localStorage.setItem(KEY.LOG,JSON.stringify(arr));}catch(_){}
+}
+function save(){
+  try{
+    localStorage.setItem(KEY.BAL,String(balance));
+    localStorage.setItem(KEY.PEAK,String(peak));
+    localStorage.setItem(KEY.MIN,String(minbal));
+    localStorage.setItem(KEY.W,String(wins));
+    localStorage.setItem(KEY.L,String(losses));
+    localStorage.setItem(KEY.J,String(jackpot));
+    localStorage.setItem(KEY.UP,String(upLevel));
+    localStorage.setItem(KEY.LOAN,String(loanPrincipal));
+  }catch(_){}
+}
+function load(){
+  try{
+    const g=(k)=>+localStorage.getItem(k);
+    [balance,peak,minbal,wins,losses,jackpot]=[g(KEY.BAL),g(KEY.PEAK),g(KEY.MIN),g(KEY.W),g(KEY.L),g(KEY.J)].map(v=>Number.isFinite(v)?v:0);
+    upLevel = Number.isFinite(g(KEY.UP)) ? g(KEY.UP) : 0;
+    loanPrincipal = Number.isFinite(g(KEY.LOAN)) ? g(KEY.LOAN) : 0;
+    if(jackpot<=0) jackpot=JACKPOT_BASE;
+    const saved=JSON.parse(localStorage.getItem(KEY.LOG)||"[]"); saved.reverse().forEach(html=>{const r=document.createElement("div"); r.className="row"; r.innerHTML=html; logEl.appendChild(r);});
+  }catch(_){}
+}
+function updateLiveP(){
+  const pct = (pWin()*100).toFixed(1)+"%";
+  pGlobal.textContent=pct;
+  pGlobals.forEach(el=>el.textContent=pct);
+}
+function updateUI(){
+  peak=Math.max(peak,balance); if(minbal===0) minbal=balance; minbal=Math.min(minbal,balance);
+  balanceTop.textContent=fmt(balance);
+  jackpotEl.textContent="₩ "+fmt(jackpot); jackpotTop.textContent="₩ "+fmt(jackpot);
+  jpP.textContent=(JACKPOT_P*100).toFixed(2)+"%"; jpP2.textContent=(JACKPOT_P*100).toFixed(2)+"%";
+  bonusPctEl.textContent = `+${(upLevel).toFixed(0)}%`;
+  nextCostEl.textContent = "₩ "+fmt(nextCost());
+  peakEl.textContent=fmt(peak); minEl.textContent=fmt(minbal);
+  winEl.textContent=wins; lossEl.textContent=losses;
+  loanOut.textContent = "₩ "+fmt(loanPrincipal);
+  loanRate.textContent = "₩ "+fmt(Math.floor(loanPrincipal*INTEREST_RATE)); // 0.5%
+  updateLiveP();
+  save();
+}
+function applyDelta(delta,label,{countWL=true,pill}={}){
+  const before=balance; balance+=delta;
+  if(countWL){ if(delta>0) wins++; else if(delta<0) losses++; }
+  updateUI();
+  const pillClass = pill ? pill : (countWL ? (delta>0?"win":"lose") : "neutral");
+  pushLog("잔액",`${label} ${delta>0?"+":"-"}${fmt(Math.abs(delta))} → ${fmt(before)} ▶ ${fmt(balance)}`, pillClass);
+  recordBalancePoint();
+}
+
+/* ===== 잭팟 FX ===== */
+function jackpotFX(kind="pos"){
+  const layer=$("#boom"), flash=$("#flash"), ring=$("#ring"), text=layer.querySelector(".boom-text");
+  text.textContent = kind==="neg" ? "REVERSE JACKPOT!" : "777 JACKPOT!";
+  text.style.color = kind==="neg" ? "#ff9ca0" : "#ffef9c";
+  text.style.textShadow = kind==="neg"
+    ? "0 0 18px rgba(255,100,120,.55), 0 0 42px rgba(255,60,80,.25)"
+    : "0 0 22px rgba(255,210,80,.7), 0 0 48px rgba(255,210,80,.35)";
+  layer.classList.remove("hide");
+  text.animate([{transform:"scale(.9)",opacity:.6},{transform:"scale(1.06)",opacity:1},{transform:"scale(1)",opacity:.95}],{duration:700,easing:"cubic-bezier(.2,.7,.2,1)"});
+  if(flash) flash.animate([{opacity:0},{opacity:.9},{opacity:0}], {duration:420, easing:"ease-out"});
+  if(ring)  ring.animate([{transform:"scale(0)", opacity:.9},{transform:"scale(18)", opacity:0}], {duration:820, easing:"cubic-bezier(.2,.7,.2,1)"});
+  const beams=24, cx=window.innerWidth/2, cy=window.innerHeight/2;
+  for(let i=0;i<beams;i++){
+    const b=document.createElement("div"); b.className="beam";
+    b.style.left=cx+"px"; b.style.top=cy+"px"; b.style.transform=`translate(-1px,0) rotate(${(360/beams)*i}deg)`;
+    layer.appendChild(b);
+    b.animate([{opacity:0,transform:b.style.transform+" scaleY(0.3)"},{opacity:.9,transform:b.style.transform+" scaleY(1)"},{opacity:0,transform:b.style.transform+" scaleY(0.2)"}],{duration:700,easing:"ease-out"}).onfinish=()=>b.remove();
+  }
+  const N=28;
+  for(let i=0;i<N;i++){
+    const p=document.createElement("div"); p.className="particle";
+    p.style.left=cx+"px"; p.style.top=cy+"px"; p.style.transform=`translate(0,0)`; layer.appendChild(p);
+    const angle=(Math.PI*2)*(i/N), speed=(140+Math.random()*140)*(kind==="neg"?0.8:1);
+    const vx=Math.cos(angle)*speed, vy=Math.sin(angle)*speed-(kind==="neg"?30:60); const start=performance.now();
+    (function anim(t0){ const dt=(t0-start)/1000; const x=vx*dt, y=vy*dt + 140*dt*dt;
+      p.style.background= kind==="neg" ? "#ff7080" : "#ffd74a";
+      p.style.transform=`translate(${x}px, ${y}px)`; p.style.opacity=String(Math.max(0,1-dt/0.9));
+      if(dt<0.9) requestAnimationFrame(anim); else p.remove();
+    })(start);
+  }
+  setTimeout(()=>layer.classList.add("hide"), 900);
+}
+
+/* ===== 배너 (비활성화 포함) ===== */
+(function(){
+  const bar=$("#extBanner"), col=$("#extCollapsed");
+  const hide1d=$("#hide1d"), close=$("#closeBtn"), collapse=$("#collapseBtn"), expand=$("#expandBtn");
+  const disable=$("#disableBannerBtn"), restore=$("#restoreBanner");
+  function syncBanner(){
+    const disabled = localStorage.getItem(KEY.B_DISABLE)==="1";
+    if(disabled){ bar.hidden=true; col.hidden=true; return; }
+    const until=+localStorage.getItem(KEY.B_HIDE)||0;
+    const collapsed=localStorage.getItem(KEY.B_COLLAPSE)==="1";
+    const allow=Date.now()>=until;
+    bar.hidden = !allow || collapsed;
+    col.hidden = !(allow && collapsed);
+  }
+  close.addEventListener("click",()=>{
+    if(hide1d.checked){ localStorage.setItem(KEY.B_HIDE,String(Date.now()+86400000)); }
+    localStorage.removeItem(KEY.B_COLLAPSE);
+    bar.hidden=true; col.hidden=true;
+  });
+  collapse.addEventListener("click",()=>{ localStorage.setItem(KEY.B_COLLAPSE,"1"); syncBanner(); });
+  expand.addEventListener("click",()=>{ localStorage.setItem(KEY.B_COLLAPSE,"0"); syncBanner(); });
+  disable.addEventListener("click",()=>{ localStorage.setItem(KEY.B_DISABLE,"1"); syncBanner(); });
+  restore.addEventListener("click",()=>{ localStorage.removeItem(KEY.B_DISABLE); localStorage.removeItem(KEY.B_HIDE); localStorage.removeItem(KEY.B_COLLAPSE); syncBanner(); });
+  syncBanner();
+})();
+
+/* ===== WebGL FX (더 강하게) ===== */
+const FX = (function(){
+  let gl, prog, tLoc, rLoc, anim=0, start=0, running=false;
+  const vs = `attribute vec2 p; void main(){ gl_Position = vec4(p,0.0,1.0); }`;
+  const fs = `
+  precision mediump float;
+  uniform float u_time; uniform vec2 u_res;
+  float n(vec2 p){ return fract(sin(dot(p, vec2(12.9898,78.233))) * 43758.5453); }
+  void main(){
+    vec2 uv = (gl_FragCoord.xy/u_res)-0.5; uv.x *= u_res.x/u_res.y;
+    float t = u_time*0.8;
+    float r = length(uv);
+    float ring = 0.5 + 0.5*sin(16.0*r - t*6.0);
+    float twirl = sin( (uv.x*7.0 - uv.y*6.0) + t*2.2 );
+    float spark = smoothstep(0.96,1.0, sin( (uv.x+uv.y+t*1.9)*60.0 ));
+    vec3 col = vec3(0.10,0.12,0.20);
+    col += 0.55*ring*vec3(1.0,0.85,0.25);
+    col += 0.25*twirl*vec3(0.25,0.6,1.0);
+    col += 0.9*spark*vec3(1.0,0.95,0.5);
+    gl_FragColor = vec4(col, 0.5);
+  }`;
+  function makeShader(gl, type, src){
+    const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
+    if(!gl.getShaderParameter(s, gl.COMPILE_STATUS)){ console.error(gl.getShaderInfoLog(s)); return null; }
+    return s;
+  }
+  function init(){
+    if(running || gl) return;
+    const glc = fxCanvas.getContext('webgl', { antialias:false, depth:false, stencil:false, alpha:true, premultipliedAlpha:false });
+    if(!glc){ console.warn('WebGL not available'); return; }
+    gl = glc;
+    function resize(){ fxCanvas.width = innerWidth; fxCanvas.height = innerHeight; gl.viewport(0,0,fxCanvas.width,fxCanvas.height); }
+    addEventListener('resize', resize); resize();
+    const v = makeShader(gl, gl.VERTEX_SHADER, vs);
+    const f = makeShader(gl, gl.FRAGMENT_SHADER, fs);
+    prog = gl.createProgram(); gl.attachShader(prog, v); gl.attachShader(prog, f); gl.linkProgram(prog);
+    if(!gl.getProgramParameter(prog, gl.LINK_STATUS)){ console.error(gl.getProgramInfoLog(prog)); return; }
+    gl.useProgram(prog);
+    const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+    const pLoc = gl.getAttribLocation(prog, 'p'); gl.enableVertexAttribArray(pLoc); gl.vertexAttribPointer(pLoc, 2, gl.FLOAT, false, 0, 0);
+    tLoc = gl.getUniformLocation(prog, 'u_time'); rLoc = gl.getUniformLocation(prog, 'u_res');
+    gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+  }
+  function startLoop(){
+    if(!gl) return;
+    start = performance.now();
+    function loop(now){
+      if(!running) return;
+      const t = (now-start)/1000;
+      gl.uniform1f(tLoc, t); gl.uniform2f(rLoc, fxCanvas.width, fxCanvas.height);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      anim = requestAnimationFrame(loop);
+    }
+    anim = requestAnimationFrame(loop);
+  }
+  return { start(){ if(running) return; init(); if(!gl) return; fxCanvas.style.display='block'; running=true; startLoop(); }, stop(){ running=false; if(anim) cancelAnimationFrame(anim); fxCanvas.style.display='none'; } };
+})();
+
+/* ===== 환경설정 + FX 토글 + 업그레이드 ===== */
+(function(){
+  const a = localStorage.getItem(KEY.ALIGN) || "flex-start";
+  const t = localStorage.getItem(KEY.THEME) || "dark";
+  const fxStored = localStorage.getItem(KEY.FX);
+  const fxOn = (fxStored===null) ? true : (fxStored==="1");
+  upLevel = +(localStorage.getItem(KEY.UP)||0);
+  document.documentElement.style.setProperty('--btn-justify', a);
+  document.body.classList.toggle('theme-light', t==='light');
+  alignSelect.value = a; themeSelect.value = t; fxToggle.checked = fxOn;
+  if(fxOn) FX.start(); else FX.stop();
+
+  $("#savePref").addEventListener("click", ()=>{
+    const na = alignSelect.value; const nt = themeSelect.value; const nfx = fxToggle.checked;
+    document.documentElement.style.setProperty('--btn-justify', na);
+    document.body.classList.toggle('theme-light', nt==='light');
+    localStorage.setItem(KEY.ALIGN, na); localStorage.setItem(KEY.THEME, nt); localStorage.setItem(KEY.FX, nfx ? "1" : "0");
+    if(nfx) FX.start(); else FX.stop();
+  });
+
+  upgradeBtn.addEventListener("click", ()=>{
+    const cost = nextCost();
+    if(balance < cost){ pushLog("업그레이드","잔액 부족","neutral"); return; }
+    applyDelta(-cost, "확률 업그레이드 결제");
+    upLevel++; save(); updateUI();
+    pushLog("업그레이드",`승률 보너스 +1% (레벨 ${upLevel})`,"win");
+  });
+})();
+
+/* ===== 입장 알림 축소 ===== */
+(function(){ const msgs=["환영합니다! 동언뱃입니다.","게임은 재미로만! 과몰입 금지."]; let i=0; (function next(){ if(i>=msgs.length) return; alert(msgs[i++]); setTimeout(next,10); })(); })();
+
+/* ===== 잭팟 표기(증액) ===== */
+(function incJP(){
+  const interestWonPerSec = Math.floor(upLevel*500); // 현재 초당 이자액(원)
+  const baseAdd = 360 + Math.floor(Math.random()*540);                 // 기본 더 큼
+  const bonusAdd = Math.floor(interestWonPerSec * 0.25);               // 이자액의 25%만큼 추가 가산
+  jackpot += (baseAdd + bonusAdd);
+  updateUI();
+
+  // 딜레이: 기본 650~1150ms에서, 이자액이 클수록 더 짧아짐
+  const faster = Math.min(400, Math.floor(interestWonPerSec / 6));     // 캡 400ms
+  const delay = Math.max(180, 650 + Math.floor(Math.random()*500) - faster);
+  setTimeout(incJP, delay);
+})();
+/* ===== 공통: 잭팟/역잭팟 체크 ===== */
+function jackpotChecks(ctx="게임", baseBet=0){
+  if(rng(REVERSE_JP_P)){
+    const loss = Math.min(balance, jackpot);
+    applyDelta(-loss, "REVERSE JACKPOT");
+    jackpotFX("neg");
+    pushLog("역잭팟",`-${fmt(loss)} (${ctx})`,"lose");
+    return true;
+  }
+  if(rng(JACKPOT_P)){
+    if(baseBet>0){
+      const prize = Math.floor(baseBet * 10);
+      applyDelta(+prize, "슬롯 잭팟");
+    }else{
+      const prize = jackpot;
+      applyDelta(+prize, "JACKPOT");
+      jackpot=Math.max(JACKPOT_MIN, Math.floor(JACKPOT_BASE*(0.4+Math.random()*0.3)));
+      updateUI();
+    }
+    jackpotFX("pos");
+    pushLog("JACKPOT",`+${fmt(baseBet?Math.floor(baseBet*10):jackpot)} (${ctx})`,"win");
+    return true;
+  }
+  return false;
+}
+
+/* ===== 그래프 (DPR 스케일 + 축 라벨 샘플링) ===== */
+function setupChartCanvas(){
+  // CSS 크기 기준으로 고해상도 그리기
+  const dpr = window.devicePixelRatio || 1;
+  const cssW = Math.max(1, chartCanvas.clientWidth || chartCanvas.width);
+  const cssH = Math.max(1, chartCanvas.clientHeight || chartCanvas.height);
+
+  // 실제 픽셀 크기 맞추고, 컨텍스트는 CSS 좌표계로 스케일
+  if (chartCanvas.width !== Math.round(cssW * dpr) || chartCanvas.height !== Math.round(cssH * dpr)) {
+    chartCanvas.width  = Math.round(cssW * dpr);
+    chartCanvas.height = Math.round(cssH * dpr);
+  }
+  chartCtx.setTransform(1,0,0,1,0,0); // 리셋
+  chartCtx.scale(dpr, dpr);
+}
+
+function recordBalancePoint(){
+  const t = Date.now();
+  balanceHistory.push([t,balance]);
+  if(balanceHistory.length>1200) balanceHistory.shift(); // 최대 점수 증가
+  drawChart();
+}
+
+function drawChart(){
+  setupChartCanvas();
+
+  // 이후부터는 CSS 픽셀 좌표로 그립니다
+  const w = chartCanvas.clientWidth || 1040;
+  const h = chartCanvas.clientHeight || 180;
+  const mL=40, mR=18, mT=22, mB=26; // 여백(라벨 안눌리게 좌측 조금 넉넉)
+  const innerW = Math.max(1, w - (mL+mR));
+  const innerH = Math.max(1, h - (mT+mB));
+
+  // 배경 정리
+  chartCtx.save();
+  chartCtx.setTransform(1,0,0,1,0,0); // 텍스트 왜곡 방지용 안전장치
+  chartCtx.restore();
+
+  chartCtx.clearRect(0,0,w,h);
+  chartCtx.fillStyle = document.body.classList.contains('theme-light') ? "#111" : "#cbd7f1";
+  chartCtx.strokeStyle = document.body.classList.contains('theme-light') ? "#d5dae6" : "#2b3a59";
+  chartCtx.lineWidth = 1;
+
+  // 프레임
+  chartCtx.strokeRect(mL, mT, innerW, innerH);
+
+  // 데이터 검사
+  if(balanceHistory.length<2){
+    chartCtx.font = "12px ui-sans-serif";
+    chartCtx.fillText("시간(초)", w - mR - 60, h - 6);
+    chartCtx.fillText("보유금(최저=0)", mL + 6, mT - 6);
+    return;
+  }
+
+  // 시간/값 범위
+  const t0 = balanceHistory[0][0];
+  const t1 = balanceHistory[balanceHistory.length-1][0];
+  let minB = Infinity, maxB = -Infinity;
+  for(const [,b] of balanceHistory){ if(b<minB) minB=b; if(b>maxB) maxB=b; }
+  // 최저=0 기준으로 내려그리기: 시각적 0을 minB로
+  const rngB = Math.max(1, maxB - minB);
+
+  // 격자/틱 개수 제한
+  const xTickCount = 8;           // X라벨 최대 8개
+  const xStepIdx   = Math.max(1, Math.floor((balanceHistory.length-1)/xTickCount));
+
+  // 그리드 + 라벨 폰트 고정
+  chartCtx.font = "12px ui-sans-serif";
+  chartCtx.textBaseline = "middle";
+  chartCtx.fillStyle = document.body.classList.contains('theme-light') ? "#111" : "#cbd7f1";
+
+  // X축 틱
+  chartCtx.textAlign = "center";
+  const totalSec = Math.max(1, Math.round((t1 - t0)/1000));
+  // 라벨 기울이기 여부 (너무 좁으면 30도 기울임)
+  const rotateX = innerW / (xTickCount+1) < 50;
+
+  for(let i=0, idx=0; idx<balanceHistory.length; i++, idx=i*xStepIdx){
+    if(idx >= balanceHistory.length) break;
+    const t = balanceHistory[idx][0];
+    const xFrac = (t - t0) / (t1 - t0 || 1);
+    const x = mL + xFrac * innerW;
+
+    // 세로 보조선
+    chartCtx.strokeStyle = document.body.classList.contains('theme-light') ? "#e8ecf5" : "#23314e";
+    chartCtx.beginPath(); chartCtx.moveTo(x, mT); chartCtx.lineTo(x, mT+innerH); chartCtx.stroke();
+
+    // 라벨 (경과초)
+    const sec = Math.round((t - t0)/1000);
+    const label = sec + "s";
+
+    if(rotateX){
+      chartCtx.save();
+      chartCtx.translate(x, mT+innerH + 10);
+      chartCtx.rotate(-Math.PI/6); // -30도
+      chartCtx.fillStyle = document.body.classList.contains('theme-light') ? "#111" : "#cbd7f1";
+      chartCtx.fillText(label, 0, 0);
+      chartCtx.restore();
+    }else{
+      chartCtx.fillStyle = document.body.classList.contains('theme-light') ? "#111" : "#cbd7f1";
+      chartCtx.fillText(label, x, mT+innerH + 10);
+    }
+  }
+
+  // 축 제목
+  chartCtx.fillStyle = document.body.classList.contains('theme-light') ? "#111" : "#cbd7f1";
+  chartCtx.textAlign = "left";
+  chartCtx.fillText("Y: 보유금 (최저=0)", mL + 6, mT - 8);
+  chartCtx.textAlign = "right";
+  chartCtx.fillText("X: 시간(초)", mL + innerW, mT + innerH + 22);
+
+  // 데이터 경로
+  chartCtx.lineWidth = 2;
+  chartCtx.strokeStyle = "#2b8cff";
+  chartCtx.beginPath();
+  balanceHistory.forEach(([t,b],i)=>{
+    const xf = (t - t0) / (t1 - t0 || 1);
+    const x  = mL + xf * innerW;
+    const yv = (b - minB) / rngB;
+    const y  = mT + innerH - yv * innerH; // 아래가 0
+    if(i===0) chartCtx.moveTo(x,y); else chartCtx.lineTo(x,y);
+  });
+  chartCtx.stroke();
+}
+
+// 반응형: 리사이즈시 다시 그리기 (DPR/폭 변화 대응)
+addEventListener('resize', drawChart);
+
+/* ===== 대출 (0.7%/s) ===== */
+function startLoanTimer(){
+  if(loanTimer || loanPrincipal<=0) return;
+  loanTimer = setInterval(()=>{
+    if(loanPrincipal<=0){ clearInterval(loanTimer); loanTimer=null; return; }
+    const interest = Math.floor(loanPrincipal * INTEREST_RATE); // 0.5%/s
+if(interest>0) applyDelta(-interest, "대출 이자(초당 0.5%)", {countWL:false,pill:"neutral"});
+  }, 1000);
+}
+borrowBtn.addEventListener("click", ()=>{
+  const amt = Math.max(0, Math.floor(+loanAmt.value||0));
+  if(amt<=0) return;
+  loanPrincipal += amt; applyDelta(+amt, "대출");
+  startLoanTimer(); updateUI();
+});
+repayBtn.addEventListener("click", ()=>{
+  const amt = Math.max(0, Math.floor(+loanAmt.value||0));
+  if(amt<=0) return;
+  const pay = Math.min(amt, balance, loanPrincipal);
+  if(pay<=0) return;
+  loanPrincipal -= pay; applyDelta(-pay, "대출 상환");
+  if(loanPrincipal<=0 && loanTimer){ clearInterval(loanTimer); loanTimer=null; }
+  updateUI();
+});
+
+/* ===== 홀짝 ===== */
+function oddEvenPlay(kind){
+  const amount=randBet();
+  const win=rng(pWin());
+  applyDelta(win?+amount:-amount, `홀짝(${kind})`);
+  resultDiv.classList.add("show");
+  resultDiv.textContent=`${kind} 선택 — ${win?'승리 +'+fmt(amount):'패배 -'+fmt(amount)}`;
+  jackpotChecks("홀짝");
+}
+$("#oddBtn").addEventListener("click",()=>oddEvenPlay("홀"));
+$("#evenBtn").addEventListener("click",()=>oddEvenPlay("짝"));
+
+/* ===== 초기화 (확률/대출 포함) ===== */
+$("#resetBtn").addEventListener("click", ()=>{
+  balance=0; peak=0; minbal=0; wins=0; losses=0; jackpot=JACKPOT_BASE;
+  upLevel=0; loanPrincipal=0; if(loanTimer){ clearInterval(loanTimer); loanTimer=null; }
+  [resultDiv,coinRes,hlRes,slotRes,rouRes,rouSpin,ladderRes].forEach(el=>el.classList.remove("show"));
+  r1.textContent=r2.textContent=r3.textContent="-";
+  updateUI(); pushLog("시스템","초기화(확률+대출 포함)","neutral");
+  balanceHistory=[]; drawChart();
+});
+
+/* ===== 동전: 실시간 면 표시 + 마지막 면을 확률 기반 결정 ===== */
+function coinFlip(choice){
+  if(coinSpinTimer){ clearInterval(coinSpinTimer); coinSpinTimer=null; }
+  const faces=["H","T"];
+  let current = faces[Math.floor(Math.random()*2)];
+  coinFace.classList.remove("anim"); void coinFace.offsetWidth; coinFace.classList.add("anim");
+  coinFace.querySelector('.coin-face').textContent = (current==="H"?"앞":"뒤");
+
+  const totalMs=900, step=95; const start=performance.now();
+  coinSpinTimer = setInterval(()=>{
+    current = faces[Math.floor(Math.random()*2)];
+    coinFace.querySelector('.coin-face').textContent = (current==="H"?"앞":"뒤");
+    if(performance.now()-start >= totalMs-step){
+      clearInterval(coinSpinTimer); coinSpinTimer=null;
+      // 최종 면: pWin 확률로 사용자가 고른 쪽, 아니면 반대
+      const final = rng(pWin()) ? choice : (choice==="H"?"T":"H");
+      coinFace.querySelector('.coin-face').textContent = (final==="H"?"앞":"뒤");
+      const amt=randBet(); const win = final===choice;
+      applyDelta(win?+amt:-amt, `동전(${choice==="H"?"앞":"뒤"})`);
+      coinRes.classList.add("show"); coinRes.textContent=`결과: ${final==="H"?"앞":"뒤"} — ${win?'승리 +'+fmt(amt):'패배 -'+fmt(amt)}`;
+      jackpotChecks("동전");
+    }
+  }, step);
+}
+$("#coinH").addEventListener("click",()=>coinFlip("H"));
+$("#coinT").addEventListener("click",()=>coinFlip("T"));
+
+/* ===== 하이/로우 (결과는 애니 끝난 뒤) ===== */
+function odometerRoll(final){
+  return new Promise(resolve=>{
+    let n=1, last=performance.now(); odo.textContent="—";
+    function step(ts){
+      const dt=ts-last; if(dt>18){ n = Math.min(final, n + Math.max(1, Math.floor(final/28))); odo.textContent=String(n); last=ts; }
+      if(n<final) requestAnimationFrame(step); else resolve();
+    }
+    requestAnimationFrame(step);
+  });
+}
+async function highLow(pick){
+  const win = rng(pWin());
+  let n;
+  if(pick==="HIGH"){ n = win ? (51 + Math.floor(Math.random()*50)) : (1 + Math.floor(Math.random()*50)); }
+  else{ n = win ? (1 + Math.floor(Math.random()*50)) : (51 + Math.floor(Math.random()*50)); }
+  await odometerRoll(n);
+  const amt=randBet(); applyDelta(win?+amt:-amt, `하이로우(${pick})`);
+  hlRes.classList.add("show"); hlRes.textContent=`숫자 ${n} — ${win?'승리 +'+fmt(amt):'패배 -'+fmt(amt)}`;
+  jackpotChecks("하이로우");
+}
+$("#lowBtn").addEventListener("click",()=>highLow("LOW"));
+$("#highBtn").addEventListener("click",()=>highLow("HIGH"));
+
+/* ===== 사다리 (3~6개, 최소 간격 보장, 세그먼트 딜레이) ===== */
+function drawLadder(ctx,w,h,rungs){
+  ctx.clearRect(0,0,w,h);
+  const themeLight = document.body.classList.contains('theme-light');
+  ctx.strokeStyle= themeLight ? "#111" : "#cbd7f1"; ctx.lineWidth=2;
+  const margin=20, top=20, bottom=h-20; const xs=[margin, w-margin];
+  ctx.beginPath(); xs.forEach(x=>{ ctx.moveTo(x,top); ctx.lineTo(x,bottom); }); ctx.stroke();
+  ctx.strokeStyle="#2b8cff"; ctx.lineWidth=3;
+  rungs.forEach(y=>{ ctx.beginPath(); ctx.moveTo(xs[0],y); ctx.lineTo(xs[1],y); ctx.stroke(); });
+}
+function genRungs(h, wantSameSide){
+  const top=20, bottom=h-20;
+  let N = Math.floor(3 + Math.random()*4); // 3~6
+  if(wantSameSide){ if(N%2===1) N++; } else { if(N%2===0) N++; }
+  const ys=[]; const minGap=18;
+  while(ys.length<N){
+    const y = top + Math.random()*(bottom-top);
+    if(ys.every(py => Math.abs(py - y) >= minGap)) ys.push(y);
+  }
+  ys.sort((a,b)=>a-b);
+  return ys;
+}
+function ladderAnim(choice){
+  return new Promise(resolve=>{
+    const ctx=ladderCanvas.getContext('2d');
+    const w=ladderCanvas.width, h=ladderCanvas.height;
+    const margin=20, top=20, bottom=h-20, xs=[margin, w-margin];
+
+    const win = rng(pWin());
+    const wantSame = win;
+    const rungs = genRungs(h, wantSame);
+    drawLadder(ctx,w,h,rungs);
+
+    ctx.lineWidth=4; ctx.strokeStyle="#f6d36b";
+    let side = (choice==="LEFT")?0:1; let y = top; let i=0;
+
+    function drawTo(y1, xFrom, xTo){ ctx.beginPath(); ctx.moveTo(xFrom,y); ctx.lineTo(xTo,y1); ctx.stroke(); y = y1; }
+
+    function step(){
+      if(i < rungs.length){
+        const targetY = rungs[i];
+        setTimeout(()=>{
+          drawTo(targetY, xs[side], xs[side]);      // 세로
+          setTimeout(()=>{
+            drawTo(targetY, xs[side], xs[1-side]);  // 가로
+            side = 1 - side; i++; requestAnimationFrame(step);
+          }, 160); // 가로 딜레이
+        }, 220);   // 세로 딜레이
+      }else{
+        setTimeout(()=>{
+          drawTo(bottom, xs[side], xs[side]); // 바닥까지
+          ctx.fillStyle="#f6d36b"; ctx.beginPath(); ctx.arc(xs[side], bottom, 5, 0, Math.PI*2); ctx.fill();
+          resolve({win, endSide: side===0?"LEFT":"RIGHT"});
+        }, 220);
+      }
+    }
+    requestAnimationFrame(step);
+  });
+}
+async function ladderPlay(choice){
+  ladderBtns.forEach(b=>setBtnDisabled(b,true));        // 시작 시 잠금
+  const {win, endSide} = await ladderAnim(choice);
+  const amt=randBet();
+  applyDelta(win?+amt:-amt, `사다리(${choice})`);
+  ladderRes.classList.add("show"); ladderRes.textContent = `${endSide} 도착 — ${win?`성공 +${fmt(amt)}`:`실패 -${fmt(amt)}`}`;
+  jackpotChecks("사다리");
+  ladderBtns.forEach(b=>setBtnDisabled(b,false));       // 끝나면 해제
+}
+$("#ladderLeft").addEventListener("click",()=>ladderPlay("LEFT"));
+$("#ladderRight").addEventListener("click",()=>ladderPlay("RIGHT"));
+
+/* ===== 슬롯 (한글 심볼, 초반 더 빠름, 마지막 릴 한 틱 빨리) ===== */
+const SYMS=["체리","종","별","7","레몬"];
+function easeOutCubic(t){ return 1 - Math.pow(1-t,3); }
+function spinReel(el, {totalMs, delayMs=0, baseStep=50, slowStep=200, plateauMs=0}){
+  let idx = Math.floor(Math.random()*SYMS.length);
+  let last=performance.now(); const start=last + delayMs;
+  return new Promise(resolve=>{
+    function tick(now){
+      if(now < start){ requestAnimationFrame(tick); return; }
+      const elapsed = now - start;
+      const accelMs = Math.max(0, totalMs - plateauMs);
+      const p = clamp(elapsed / Math.max(1,accelMs), 0, 1);
+      const stepMs = (elapsed < accelMs)
+        ? baseStep + (slowStep - baseStep) * easeOutCubic(p)
+        : slowStep;
+      if(now - last >= stepMs){
+        el.textContent = SYMS[idx % SYMS.length];
+        el.classList.toggle('sym-7', el.textContent==="7");
+        idx++; last = now;
+      }
+      if(elapsed < totalMs){ requestAnimationFrame(tick); }
+      else { resolve(el.textContent); }
+    }
+    requestAnimationFrame(tick);
+  });
+}
+function playSlot(){
+  if(slotBusy) return; slotBusy=true; slotRes.classList.remove("show");
+  const p1 = spinReel(r1, { totalMs:760,  delayMs:0,   baseStep:6,   slowStep:100, plateauMs:0   });
+  const p2 = spinReel(r2, { totalMs:1150, delayMs:140, baseStep:40,  slowStep:180, plateauMs:140 });
+  const p3 = spinReel(r3, { totalMs:1850, delayMs:480, baseStep:110, slowStep:480, plateauMs:900 }); // 마지막 한 틱 빨리
+
+  Promise.all([p1,p2,p3]).then(([A,B,C])=>{
+    const base = randBet();
+    if(A==="7" && B==="7" && C==="7"){
+      const prize = Math.floor(base * 10);
+      applyDelta(+prize, "슬롯 잭팟");
+      slotRes.classList.add("show");
+      slotRes.textContent = `잭팟! +${fmt(prize)} (×10)`;
+      jackpotFX("pos");
+      slotBusy=false; return;
+    }
+    let mult = 0;
+    if(A===B && B===C){ mult = 2.5; }
+    else if(A===B || A===C || B===C){ mult = 0.4; }
+    const delta = (mult>0) ? Math.floor(base*mult) : -base;
+    applyDelta(delta>0?+delta:-base, "슬롯");
+    slotRes.classList.add("show");
+    slotRes.textContent = `결과: ${A} | ${B} | ${C} — ${delta>0?`승리 x${mult} +${fmt(delta)}`:`패배 -${fmt(base)}`}`;
+    jackpotChecks("슬롯", base);
+    slotBusy=false;
+  });
+}
+$("#slotBtn").addEventListener("click", playSlot);
+
+/* ===== 룰렛 ===== */
+const REDS=new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
+function colorOf(n){ return n===0?"GREEN":(REDS.has(n)?"RED":"BLACK"); }
+function sampleNumberByColor(c){
+  if(c==="GREEN") return 0;
+  if(c==="RED"){ const arr=[...REDS]; return arr[Math.floor(Math.random()*arr.length)]; }
+  const blacks=[...Array(37).keys()].filter(n=>n!==0 && !REDS.has(n));
+  return blacks[Math.floor(Math.random()*blacks.length)];
+}
+function rouletteSpinToN(n, onDone){
+  rouSpin.classList.add("show");
+  const seq = Array.from({length:37},(_,k)=>k);
+  const start=performance.now(); let i=0, last=start; const dur=1000;
+  function tick(now){
+    const p=easeOutCubic(clamp((now-start)/dur,0,1));
+    const stepMs = 22 + 90*p;
+    if(now - last >= stepMs){
+      const num=seq[i%seq.length]; const c=colorOf(num)[0];
+      rouSpin.textContent=`스핀: ${num} (${c})`;
+      i++; last=now;
+    }
+    if(now-start<dur) requestAnimationFrame(tick);
+    else { const col=colorOf(n); rouSpin.textContent=`결과: ${n} ${col}`; onDone&&onDone(n,col); }
+  }
+  requestAnimationFrame(tick);
+}
+document.querySelectorAll('[data-roulette]').forEach(btn=>btn.addEventListener("click",()=>{
+  const pick=btn.dataset.roulette;
+  const win = rng(pWin());
+  const targetColor = win ? pick : (pick==="RED"?"BLACK":"RED");
+  const n = sampleNumberByColor(targetColor);
+  const amt=randBet();
+  rouletteSpinToN(n, (_n, col)=>{
+    const ok=(col===pick);
+    applyDelta(ok?+amt:-amt,`룰렛(${pick})`);
+    rouRes.classList.add("show"); rouRes.textContent=`${ok?'승리 +'+fmt(amt):'패배 -'+fmt(amt)}`;
+    jackpotChecks("룰렛(색)");
+  });
+}));
+$("#rouletteNumBtn").addEventListener("click",()=>{
+  const val=+$("#rouletteNum").value; if(Number.isNaN(val)||val<0||val>36){ rouRes.classList.add("show"); rouRes.textContent="0~36 숫자를 넣어주세요"; return; }
+  const n=Math.floor(Math.random()*37), col=colorOf(n); const amt=randBet();
+  rouletteSpinToN(n, ()=>{
+    const win=(val===n);
+    applyDelta(win?+(amt*35):-amt, `룰렛(숫자 ${val})`);
+    rouRes.classList.add("show"); rouRes.textContent= win ? `대승 +${fmt(amt*35)}` : `패배 -${fmt(amt)}`;
+    jackpotChecks("룰렛(숫자)");
+  });
+});
+
+/* ===== 부팅 ===== */
+load(); updateUI(); recordBalancePoint();
+if(loanPrincipal>0) startLoanTimer();
+
+} // init()
+</script>
+</body>
+                                                          </html>
