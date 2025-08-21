@@ -370,11 +370,21 @@ const betAmt = ()=> clamp(Math.floor(+$("#betInput").value||1000), 100, Math.max
 
 function setBtnDisabled(el,on){ el.disabled=on; el.style.opacity = on ? "0.55" : "1"; el.style.pointerEvents = on ? "none" : "auto"; }
 function setGlobalInputs(on){
-  const list=$$('button,input,select');
+  const list = $$('button,input,select');
   list.forEach(el=>{
-    if(el===captchaA) return; // 캡차 입력 허용
-    if(on){ el.removeAttribute('disabled'); el.style.pointerEvents='auto'; }
-    else{ el.setAttribute('disabled','disabled'); el.style.pointerEvents='none'; }
+    // ⬇️ 캡차/오버레이 내부 컨트롤은 비활성화 대상에서 제외
+    if (el.closest('#captchaOverlay') || el.closest('#eventOverlay') || el.closest('#skillOverlay') || el.closest('#resetConfirm')) {
+      return;
+    }
+    if (el === captchaA) return; // 기존 예외 유지 (캡차 입력칸)
+
+    if (on){
+      el.removeAttribute('disabled');
+      el.style.pointerEvents = 'auto';
+    } else {
+      el.setAttribute('disabled', 'disabled');
+      el.style.pointerEvents = 'none';
+    }
   });
 }
 
