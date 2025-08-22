@@ -1,12 +1,10 @@
-<!DOCTYPE html>
-
-<html lang="ko">
+<!DOCTYPE html><html lang="ko">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport"/>
-<meta content="yes" name="apple-mobile-web-app-capable"/>
-<meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
-<title>『동언뱃』 v2</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>『동동뱃』 v2</title>
 <style>
   :root{
     --bg:#0a0c13; --panel:#101421; --panel2:#0c111c; --line:#1a2234;
@@ -69,335 +67,288 @@
 
 /* 오버레이(파산/캡차/이벤트/스킬) */ .overlay{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:12000; background:rgba(0,0,0,.55); backdrop-filter: blur(8px); } .overlay.show{ display:flex } .modal{ background:rgba(16,20,33,.7); border:1px solid rgba(255,255,255,.08); padding:16px; border-radius:14px; width:min(92vw,420px); color:var(--text); text-align:center; box-shadow: 0 10px 32px rgba(0,0,0,.35); } .modal h3{ margin:0 0 10px; } .choices{ display:grid; gap:8px; } .tag{ display:inline-block; padding:2px 8px; border-radius:999px; border:1px solid rgba(255,255,255,.15); font-size:12px; color:var(--muted) }
 
-@media (prefers-reduced-motion: reduce){ *{ animation: none !important; transition: none !important } } </style>
-<style>
-/* === Overrides (phase 2) === */
+@media (prefers-reduced-motion: reduce){ *{ animation: none !important; transition: none !important } } 
+/* === OVERRIDES: Background + Sidebar (injected) === */
+body {
+  background: linear-gradient(120deg, #ffcf45, #ff5a5a, #ffa14a);
+  background-size: 320% 320%;
+  animation: bgSlow 60s ease-in-out infinite;
+}
+body.theme-light { background: linear-gradient(120deg, #fff2b5, #ffc0b5, #ffe1b5); }
+@keyframes bgSlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+/* remove old layered fx completely */
+body::before { display:none !important; }
+#fxCanvas { display:none !important; mix-blend-mode:normal !important; }
+/* pause animation class (used by FX.stop mock) */
+.bg-paused { animation-play-state: paused !important; }
 
-/* Sidebar toggle: bottom-right */
-.sb-toggle{
-  left:auto !important; top:auto !important;
-  right: max(12px, env(safe-area-inset-right));
-  bottom: max(12px, env(safe-area-inset-bottom));
+/* Sidebar */
+.sidebar-toggle{
+  position:fixed; left:14px; top:14px; z-index:40000;
+  width:40px; height:40px; border-radius:10px; border:1px solid rgba(255,255,255,.12);
+  background:rgba(16,20,33,.7); color:#fff; font-weight:900; cursor:pointer;
+  backdrop-filter: blur(10px) saturate(1.1);
 }
+.theme-light .sidebar-toggle{ background:rgba(255,255,255,.8); color:#111; border-color:#e3e7f2 }
 
-/* Faster, denser, more vivid gradients */
-@keyframes gradShiftFast{
-  0%{background-position:0% 50%}
-  25%{background-position:50% 0%}
-  50%{background-position:100% 50%}
-  75%{background-position:50% 100%}
-  100%{background-position:0% 50%}
+.sidebar{
+  position:fixed; inset:0 auto 0 0; width:min(86vw, 320px); z-index:39999;
+  transform: translateX(-100%); transition: transform .25s ease;
+  background:rgba(16,20,33,.78); border-right:1px solid rgba(255,255,255,.08);
+  backdrop-filter: blur(16px) saturate(1.15); color:#eaf0ff;
 }
+.theme-light .sidebar{
+  background:rgba(255,255,255,.9); color:#111; border-color:#e3e7f2;
+}
+.sidebar.open{ transform: translateX(0) }
+.sidebar-inner{ display:flex; flex-direction:column; height:100% }
+.sidebar-head{ padding:14px 14px 8px; font-size:15px; opacity:.95 }
+.sidebar-group{ display:grid; gap:10px; padding:8px 14px }
+.sidebar-actions{ display:flex; gap:8px; padding:8px 14px; }
+.sidebar-actions > button{ flex:1 }
+.sidebar-foot{ margin-top:auto; padding:10px 14px; font-size:12px; color:#9aa6bf }
+.theme-light .sidebar-foot{ color:#475569 }
 
-/* Dark mode (default): black→navy multi-layer gradient */
-body, body.theme-dark{
-  background:
-    radial-gradient(1200px 800px at 10% 20%, rgba(0,80,255,.22), transparent 60%),
-    radial-gradient(900px 700px at 90% 80%, rgba(0,180,200,.16), transparent 60%),
-    linear-gradient(135deg,#06080E 0%, #0A1020 30%, #0C1C3A 60%, #0A1020 85%, #06080E 100%) fixed;
-  background-size: 300% 300%, 300% 300%, 400% 400%;
-}
-body.bg-animated, body.theme-dark.bg-animated{
-  animation: gradShiftFast 22s ease-in-out infinite;
-}
+/* Hide original inline settings row once we move elements */
+.moved-inline-settings{ display:none !important; }
 
-/* Light mode: vivid yellow→orange→red gradient */
-body.theme-light{
-  background:
-    radial-gradient(1200px 700px at 10% 20%, rgba(255,240,120,.35), transparent 60%),
-    radial-gradient(900px 600px at 90% 80%, rgba(255,120,90,.25), transparent 60%),
-    linear-gradient(135deg,#fff6a0 0%, #ffd37a 25%, #ff9a6b 55%, #ff6b6b 85%) fixed;
-  background-size: 320% 320%, 320% 320%, 420% 420%;
-}
-body.theme-light.bg-animated{
-  animation: gradShiftFast 18s ease-in-out infinite;
-}
+</style>
 
-/* Make cards less opaque so background shows through */
-.card{ background: rgba(16,20,33,.38) !important; }
-.theme-light .card{ background: rgba(255,255,255,.74) !important; border-color: #e7ecf7 !important; }
+</head>
+<body>
 
-/* Ensure rear big frame/box adapts to light mode too */
-.slot-frame{
-  background: linear-gradient(180deg, #0d1220, #1b2438) !important;
-}
-.theme-light .slot-frame{
-  background: linear-gradient(180deg, #f7f9ff, #e9eefb) !important;
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,.04) !important;
-  border: 1px solid #e8eef9 !important;
-}
+  <button id="sidebarToggle" class="sidebar-toggle" aria-label="사이드바 열기/닫기">☰</button>
+  <aside id="sidebar" class="sidebar" aria-label="설정 사이드바">
+    <div class="sidebar-inner">
+      <header class="sidebar-head"><strong>설정</strong></header>
+      <div id="sbSettingsSlot" class="sidebar-group"></div>
+      <div class="sidebar-actions">
+        <!-- 기존 요소 이동: savePref / resetBtn -->
+      </div>
+      <footer class="sidebar-foot">v2</footer>
+    </div>
+  </aside>
 
-/* Remove any dark overlay that hides the background */
-body::before{ display:none !important; background:none !important; }
-
-/* Top balance bar: stick full-bleed to screen edges while preserving look */
-.balance-bar{
-  position: fixed !important; top: 0; left: 0; right: 0;
-  margin: 0 !important; border-radius: 0 !important;
-  padding-left: max(12px, env(safe-area-inset-left));
-  padding-right: max(12px, env(safe-area-inset-right));
-}
-/* Push content below fixed bar */
-.container{ padding-top: 64px; }
-
-/* Sidebar panel stays left; just the toggle moved */
-.sidebar .sb-inner{ left: 12px !important; right: auto; }
-</style><style>
-/* === Overrides (phase 3) === */
-
-/* Bottom-right floating hamburger */
-.sb-toggle{
-  left:auto !important; top:auto !important;
-  right: max(16px, env(safe-area-inset-right));
-  bottom: max(16px, env(safe-area-inset-bottom));
-  width: 44px; height: 44px; border-radius: 12px;
-  font-size: 22px; line-height: 1; display:flex; align-items:center; justify-content:center;
-}
-
-/* Kill any dimming overlays that hide background */
-body::before{ display:none !important; background:none !important; }
-#fxCanvas{ display:none !important; }
-
-/* DARK (default): black→navy vivid multi-layer gradient */
-body{
-  background:
-    radial-gradient(900px 600px at 15% 15%, rgba(40,60,160,.35), transparent 60%),
-    radial-gradient(900px 600px at 85% 85%, rgba(0,160,190,.20), transparent 60%),
-    radial-gradient(700px 500px at 50% 30%, rgba(180,140,40,.18), transparent 60%),
-    linear-gradient(135deg,#05070C 0%, #0A1020 28%, #0D1A35 52%, #0A1020 76%, #05070C 100%) fixed;
-  background-size: 360% 360%, 360% 360%, 360% 360%, 420% 420%;
-}
-body.bg-animated{
-  animation: gradShiftUltra 14s ease-in-out infinite alternate;
-}
-
-/* LIGHT: vivid yellow→orange→red */
-body.theme-light{
-  background:
-    radial-gradient(1000px 700px at 12% 18%, rgba(255,245,120,.45), transparent 62%),
-    radial-gradient(900px 650px at 88% 82%, rgba(255,170,90,.35), transparent 62%),
-    radial-gradient(800px 520px at 50% 30%, rgba(255,100,100,.25), transparent 62%),
-    linear-gradient(135deg,#fff6a0 0%, #ffd37a 25%, #ff9966 55%, #ff6b6b 85%) fixed;
-  background-size: 380% 380%, 380% 380%, 380% 380%, 440% 440%;
-}
-body.theme-light.bg-animated{
-  animation: gradShiftUltra 16s ease-in-out infinite alternate;
-}
-
-/* Tighter motion path */
-@keyframes gradShiftUltra{
-  0%{background-position: 0% 50%, 100% 50%, 50% 0%, 0% 0%}
-  25%{background-position: 25% 25%, 75% 75%, 60% 20%, 50% 50%}
-  50%{background-position: 50% 0%, 50% 100%, 50% 30%, 100% 100%}
-  75%{background-position: 75% 75%, 25% 25%, 40% 60%, 50% 50%}
-  100%{background-position: 100% 50%, 0% 50%, 50% 100%, 0% 0%}
-}
-
-/* Top balance bar: full-bleed & sticky, preserve look */
-.balance-bar{
-  position: sticky !important;
-  top: 0;
-  left: 0; right: 0;
-  width: 100%;
-  margin: 0 !important;
-  border-radius: 0 0 12px 12px !important;
-  padding-left: max(12px, env(safe-area-inset-left));
-  padding-right: max(12px, env(safe-area-inset-right));
-  z-index: 100;
-}
-.container{ padding-top: 10px; } /* sticky stays in flow, so small offset is enough */
-
-/* Light mode: ensure the far-back frame/box also turns light */
-.slot-frame{
-  background: linear-gradient(180deg, #0d1220, #1b2438) !important;
-}
-.theme-light .slot-frame{
-  background: linear-gradient(180deg, #fbfcff, #ecf2ff) !important;
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,.04) !important;
-  border: 1px solid #e8eef9 !important;
-}
-
-/* If any generic "backdrop" layers exist, make them transparent */
-.bg-dim, .backdrop, .veil, .scrim, .shadow-layer{
-  background: transparent !important;
-}
-
-/* Cards: keep style but a bit more transparent so background is more visible */
-.card{ background: rgba(16,20,33,.36) !important; }
-.theme-light .card{ background: rgba(255,255,255,.82) !important; }
-</style></head>
-<body class="theme-dark"><button class="sb-toggle" id="sidebarToggle">☰</button>
-<canvas id="fxCanvas"></canvas> <!-- 상단 잔액 바 --> <div class="balance-bar" id="balanceBar">
-<div><b>『동언뱃』 v2</b></div>
-<div class="balance-pill">현재 금액: <span id="balanceTop">0</span></div>
-<div class="balance-pill">잭팟: <span id="jackpotTop">₩ 1,200,000</span> (<span id="jackpotP"></span>)</div>
-<div class="balance-pill">대출 한도: <span id="loanCapTop">0</span></div>
-</div> <div class="container">
-<!-- 헤더 -->
-<section class="card">
-<div class="title">
-<h1>『동언뱃』</h1>
-<div class="sub">서버 상태: 정상 · 현재 기본 승률: <b id="p-global">47%</b> · 난이도 스케일: <b id="diff">1.00x</b></div>
-</div>
-<div class="jackpot">
-<div>JACKPOT <span class="num" id="jackpot">₩ 1,200,000</span></div>
-<div class="sub">확률: <b id="jackpotP2"></b> / 플레이</div>
-</div><div class="stat-row" style="margin-top:8px">
-<div class="stat">승리: <b id="wins">0</b></div>
-<div class="stat">패배: <b id="losses">0</b></div>
-<div class="stat">최대 보유금: <b id="peak">0</b></div>
-<div class="stat">역대 최소금: <b id="minbal">0</b></div>
-<div class="stat">업적: <b id="ach">0</b></div>
-</div>
+  <canvas id="fxCanvas"></canvas>  <!-- 상단 잔액 바 -->  <div id="balanceBar" class="balance-bar">
+    <div><b>『동동뱃』 v2</b></div>
+    <div class="balance-pill">현재 금액: <span id="balanceTop">0</span></div>
+    <div class="balance-pill">잭팟: <span id="jackpotTop">₩ 1,200,000</span> (<span id="jackpotP"></span>)</div>
+    <div class="balance-pill">대출 한도: <span id="loanCapTop">0</span></div>
+  </div>  <div class="container">
+    <!-- 헤더 -->
+    <section class="card">
+      <div class="title">
+        <h1>『동동뱃』</h1>
+        <div class="sub">서버 상태: 정상 · 현재 기본 승률: <b id="p-global">47%</b> · 난이도 스케일: <b id="diff">1.00x</b></div>
+      </div>
+      <div class="jackpot">
+        <div>JACKPOT <span class="num" id="jackpot">₩ 1,200,000</span></div>
+        <div class="sub">확률: <b id="jackpotP2"></b> / 플레이</div>
+      </div><div class="stat-row" style="margin-top:8px">
+    <div class="stat">승리: <b id="wins">0</b></div>
+    <div class="stat">패배: <b id="losses">0</b></div>
+    <div class="stat">최대 보유금: <b id="peak">0</b></div>
+    <div class="stat">역대 최소금: <b id="minbal">0</b></div>
+    <div class="stat">업적: <b id="ach">0</b></div>
+  </div>
 </section>
+
 <!-- 설정/업그레이드/금융 -->
 <section class="card">
-<div class="title"><h2>환경설정</h2><div class="sub">정렬/테마/효과/업그레이드/대출 정책 저장 (글래스 UI)</div></div>
-<div class="btn-row" style="gap:12px; align-items:center">
-<label>버튼 정렬:
+  <div class="title"><h2>환경설정</h2><div class="sub">정렬/테마/효과/업그레이드/대출 정책 저장 (글래스 UI)</div></div>
+  <div class="btn-row" style="gap:12px; align-items:center">
+    <label>버튼 정렬:
       <select id="alignSelect" style="padding:8px 10px; border-radius:10px; border:1px solid var(--line); background:rgba(240,245,255,.6); color:var(--text)">
-<option value="flex-start">왼쪽</option>
-<option value="center">가운데</option>
-<option value="flex-end">오른쪽</option>
-</select>
-</label>
-<label style="margin-left:10px">테마:
-      <select id="themeSelect" style="padding:8px 10px; border-radius:10px; border:1px solid var(--line); background:rgba(240,245,255,.6); color:var(--text)">
-<option value="dark">다크</option>
-<option value="light">라이트</option>
-</select>
-</label>
-<label style="margin-left:10px; display:flex; gap:6px; align-items:center">
-<input checked="" id="fxToggle" type="checkbox"/> 배경 WebGL 효과
+        <option value="flex-start">왼쪽</option>
+        <option value="center">가운데</option>
+        <option value="flex-end">오른쪽</option>
+      </select>
     </label>
-<button class="btn-ghost" id="savePref">적용</button>
-</div>
-<div class="btn-row" style="gap:12px; margin-top:10px; flex-wrap:wrap">
-<button class="btn-rand" id="upgradeWinBtn">승률 업그레이드</button>
-<button class="btn-rand" id="upgradeJpBtn">잭팟 확률 업그레이드</button>
-<button class="btn-ghost" id="boostJpMode">잭팟 모드(10초)</button>
-<div class="stat">보너스: <b id="bonusPct">+0%</b></div>
-<div class="stat">JP 보너스: <b id="bonusJp">+0.00%</b></div>
-<div class="stat">다음 비용: <b id="nextCost">₩ 100,000</b></div>
-</div>
-<div class="btn-row" style="gap:12px; margin-top:10px; flex-wrap:wrap">
-<div class="stat">대출 잔액: <b id="loanOut">₩ 0</b></div>
-<div class="stat">현재 이자(초당): <b id="loanRate">₩ 0</b></div>
-<div class="stat">최대 대출 한도: <b id="loanCap">₩ 0</b></div>
-</div>
-<div class="btn-row" style="gap:8px; margin-top:8px">
-<input id="loanAmt" min="0" placeholder="금액(원)" step="1000" style="flex:1; min-width:120px; border-radius:10px; border:1px solid var(--line); background:rgba(240,245,255,.8); color:#111; padding:8px 10px" type="number"/>
-<button class="btn-odd" id="borrowBtn">돈 빌리기</button>
-<button class="btn-even" id="repayBtn">돈 갚기</button>
-</div>
-<div class="btn-row" style="gap:8px; margin-top:10px">
-<label>베팅 금액: <input id="betInput" min="100" step="100" style="width:140px; border-radius:10px; padding:8px 10px; border:1px solid var(--line); background:rgba(240,245,255,.8); color:#111" type="number" value="1000"/></label>
-<span class="sub">(직접 조절 가능)</span>
-</div>
+    <label style="margin-left:10px">테마:
+      <select id="themeSelect" style="padding:8px 10px; border-radius:10px; border:1px solid var(--line); background:rgba(240,245,255,.6); color:var(--text)">
+        <option value="dark">다크</option>
+        <option value="light">라이트</option>
+      </select>
+    </label>
+    <label style="margin-left:10px; display:flex; gap:6px; align-items:center">
+      <input id="fxToggle" type="checkbox" checked> 배경 WebGL 효과
+    </label>
+    <button class="btn-ghost" id="savePref">적용</button>
+  </div>
+
+  <div class="btn-row" style="gap:12px; margin-top:10px; flex-wrap:wrap">
+    <button class="btn-rand" id="upgradeWinBtn">승률 업그레이드</button>
+    <button class="btn-rand" id="upgradeJpBtn">잭팟 확률 업그레이드</button>
+    <button class="btn-ghost" id="boostJpMode">잭팟 모드(10초)</button>
+    <div class="stat">보너스: <b id="bonusPct">+0%</b></div>
+    <div class="stat">JP 보너스: <b id="bonusJp">+0.00%</b></div>
+    <div class="stat">다음 비용: <b id="nextCost">₩ 100,000</b></div>
+  </div>
+
+  <div class="btn-row" style="gap:12px; margin-top:10px; flex-wrap:wrap">
+    <div class="stat">대출 잔액: <b id="loanOut">₩ 0</b></div>
+    <div class="stat">현재 이자(초당): <b id="loanRate">₩ 0</b></div>
+    <div class="stat">최대 대출 한도: <b id="loanCap">₩ 0</b></div>
+  </div>
+  <div class="btn-row" style="gap:8px; margin-top:8px">
+    <input id="loanAmt" type="number" placeholder="금액(원)" min="0" step="1000" style="flex:1; min-width:120px; border-radius:10px; border:1px solid var(--line); background:rgba(240,245,255,.8); color:#111; padding:8px 10px">
+    <button class="btn-odd" id="borrowBtn">돈 빌리기</button>
+    <button class="btn-even" id="repayBtn">돈 갚기</button>
+  </div>
+
+  <div class="btn-row" style="gap:8px; margin-top:10px">
+    <label>베팅 금액: <input id="betInput" type="number" min="100" step="100" value="1000" style="width:140px; border-radius:10px; padding:8px 10px; border:1px solid var(--line); background:rgba(240,245,255,.8); color:#111"></label>
+    <span class="sub">(직접 조절 가능)</span>
+  </div>
 </section>
+
 <!-- 테이블 & 퀵 게임 -->
 <section class="card">
-<div class="title"><h2>테이블 &amp; 퀵 게임</h2><div class="sub">홀짝 · 동전 · 하이/로우 · 사다리 — 승률: <b class="pLive"></b></div></div>
-<div class="item" style="margin-bottom:10px">
-<h4>홀짝 <small>(승률 <b class="pLive"></b>)</small></h4>
-<p class="desc">1,000의 자릿수로 홀/짝을 맞추면 승리. 승리시 설정된 배당(업그레이드/난이도/이벤트 반영)으로 지급.</p>
-<div class="btn-row">
-<button aria-label="홀짝 게임: 홀에 베팅" class="btn-odd" id="oddBtn">홀수</button>
-<button aria-label="홀짝 게임: 짝에 베팅" class="btn-even" id="evenBtn">짝수</button>
-<button aria-label="초기화" class="btn-ghost" id="resetBtnInLine">초기화</button>
-</div>
-<div aria-live="polite" class="display" id="result">결과 대기중…</div>
-</div>
-<div class="grid">
-<div class="item">
-<h4>동전 던지기 <small>(승률 <b class="pLive"></b>)</small></h4>
-<p class="desc">앞/뒤 선택 후 랜덤. 업그레이드에 따라 승률/배당이 달라짐.</p>
-<div class="coin"><div class="coin-inner" id="coinFace"><div class="coin-face">앞</div></div></div>
-<div class="btn-row">
-<button class="btn-odd" id="coinH">앞</button>
-<button class="btn-even" id="coinT">뒤</button>
-</div>
-<div class="display" id="coinResult">결과 대기중…</div>
-</div>
-<div class="item">
-<h4>하이 / 로우 <small>(승률 <b class="pLive"></b>)</small></h4>
-<p class="desc">1~100 중 랜덤 수. 50 초과면 HIGH, 이하면 LOW. 선택이 맞으면 승리.</p>
-<div class="odometer" id="odometer">—</div>
-<div class="btn-row">
-<button class="btn-odd" id="lowBtn">LOW</button>
-<button class="btn-even" id="highBtn">HIGH</button>
-</div>
-<div class="display" id="hlResult">결과 대기중…</div>
-</div>
-<div class="item">
-<h4>사다리 <small>(승률 <b class="pLive"></b>)</small></h4>
-<p class="desc">좌/우 중 선택해 아래까지 내려가기. 가로줄 수에 따라 결과가 달라짐.</p>
-<canvas height="190" id="ladderCanvas" style="width:100%; background:rgba(240,245,255,.08); border:1px solid var(--line); border-radius:8px" width="280"></canvas>
-<div class="btn-row">
-<button class="btn-odd" id="ladderLeft">LEFT</button>
-<button class="btn-even" id="ladderRight">RIGHT</button>
-</div>
-<div class="display" id="ladderResult">결과 대기중…</div>
-</div>
-</div>
+  <div class="title"><h2>테이블 & 퀵 게임</h2><div class="sub">홀짝 · 동전 · 하이/로우 · 사다리 — 승률: <b class="pLive"></b></div></div>
+
+  <div class="item" style="margin-bottom:10px">
+    <h4>홀짝 <small>(승률 <b class="pLive"></b>)</small></h4>
+    <p class="desc">1,000의 자릿수로 홀/짝을 맞추면 승리. 승리시 설정된 배당(업그레이드/난이도/이벤트 반영)으로 지급.</p>
+    <div class="btn-row">
+      <button class="btn-odd" id="oddBtn" aria-label="홀짝 게임: 홀에 베팅">홀수</button>
+      <button class="btn-even" id="evenBtn" aria-label="홀짝 게임: 짝에 베팅">짝수</button>
+      <button class="btn-ghost" id="resetBtnInLine" aria-label="초기화">초기화</button>
+    </div>
+    <div id="result" class="display" aria-live="polite">결과 대기중…</div>
+  </div>
+
+  <div class="grid">
+    <div class="item">
+      <h4>동전 던지기 <small>(승률 <b class="pLive"></b>)</small></h4>
+      <p class="desc">앞/뒤 선택 후 랜덤. 업그레이드에 따라 승률/배당이 달라짐.</p>
+      <div class="coin"><div id="coinFace" class="coin-inner"><div class="coin-face">앞</div></div></div>
+      <div class="btn-row">
+        <button class="btn-odd" id="coinH">앞</button>
+        <button class="btn-even" id="coinT">뒤</button>
+      </div>
+      <div id="coinResult" class="display">결과 대기중…</div>
+    </div>
+
+    <div class="item">
+      <h4>하이 / 로우 <small>(승률 <b class="pLive"></b>)</small></h4>
+      <p class="desc">1~100 중 랜덤 수. 50 초과면 HIGH, 이하면 LOW. 선택이 맞으면 승리.</p>
+      <div id="odometer" class="odometer">—</div>
+      <div class="btn-row">
+        <button class="btn-odd" id="lowBtn">LOW</button>
+        <button class="btn-even" id="highBtn">HIGH</button>
+      </div>
+      <div id="hlResult" class="display">결과 대기중…</div>
+    </div>
+
+    <div class="item">
+      <h4>사다리 <small>(승률 <b class="pLive"></b>)</small></h4>
+      <p class="desc">좌/우 중 선택해 아래까지 내려가기. 가로줄 수에 따라 결과가 달라짐.</p>
+      <canvas id="ladderCanvas" width="280" height="190" style="width:100%; background:rgba(240,245,255,.08); border:1px solid var(--line); border-radius:8px"></canvas>
+      <div class="btn-row">
+        <button class="btn-odd" id="ladderLeft">LEFT</button>
+        <button class="btn-even" id="ladderRight">RIGHT</button>
+      </div>
+      <div id="ladderResult" class="display">결과 대기중…</div>
+    </div>
+  </div>
 </section>
+
 <!-- 슬롯 & 룰렛 -->
 <section class="card">
-<div class="title"><h2>슬롯 &amp; 룰렛 존</h2><div class="sub">단계 감속 · 결과 동기화 · 역잭팟 · 강화 보상</div></div>
-<div class="grid">
-<div class="item">
-<h4>미니 슬롯 <small>(3개=×2.5(강화), 2개=×0.4(강화), <b class="sym-7">777=잭팟×10(강화)</b>)</small></h4>
-<p class="desc">스핀 결과 조합에 따라 배당. v2에서는 손익이 대폭 강화: 무배당시 손실 30배, 2개 일치×4, 3개 일치×75, 777은 ×100.</p>
-<div class="slot-frame">
-<div class="reels">
-<div class="reel" id="reel1">-</div>
-<div class="reel" id="reel2">-</div>
-<div class="reel" id="reel3">-</div>
-</div>
-</div>
-<div class="btn-row">
-<button class="btn-rand" id="slotBtn">스핀</button>
-</div>
-<div class="display" id="slotResult">결과 대기중…</div>
-</div>
-<div class="item">
-<h4>룰렛 <small>(색상베팅 승률 <b class="pLive"></b>)</small></h4>
-<p class="desc">0~36. 색상 1:1, 숫자 35:1. 난이도/업그레이드 영향을 받음.</p>
-<div class="muted">0~36 · 색상 1:1, 숫자 35:1</div>
-<div class="display" id="rouletteSpin">대기중…</div>
-<div class="btn-row" style="margin-top:8px">
-<button class="btn-odd" data-roulette="RED">RED</button>
-<button class="btn-even" data-roulette="BLACK">BLACK</button>
-</div>
-<div class="btn-row" style="margin-top:6px">
-<input id="rouletteNum" max="36" min="0" placeholder="숫자(0~36)" style="flex:1; min-width:120px; border-radius:10px; border:1px solid var(--line); background:rgba(240,245,255,.8); color:#111; padding:8px 10px" type="number"/>
-<button class="btn-ghost" id="rouletteNumBtn">숫자 베팅</button>
-</div>
-<div class="display" id="rouletteResult">결과 대기중…</div>
-</div>
-</div>
+  <div class="title"><h2>슬롯 & 룰렛 존</h2><div class="sub">단계 감속 · 결과 동기화 · 역잭팟 · 강화 보상</div></div>
+  <div class="grid">
+    <div class="item">
+      <h4>미니 슬롯 <small>(3개=×2.5(강화), 2개=×0.4(강화), <b class="sym-7">777=잭팟×10(강화)</b>)</small></h4>
+      <p class="desc">스핀 결과 조합에 따라 배당. v2에서는 손익이 대폭 강화: 무배당시 손실 30배, 2개 일치×4, 3개 일치×75, 777은 ×100.</p>
+      <div class="slot-frame">
+        <div class="reels">
+          <div id="reel1" class="reel">-</div>
+          <div id="reel2" class="reel">-</div>
+          <div id="reel3" class="reel">-</div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-rand" id="slotBtn">스핀</button>
+      </div>
+      <div id="slotResult" class="display">결과 대기중…</div>
+    </div>
+
+    <div class="item">
+      <h4>룰렛 <small>(색상베팅 승률 <b class="pLive"></b>)</small></h4>
+      <p class="desc">0~36. 색상 1:1, 숫자 35:1. 난이도/업그레이드 영향을 받음.</p>
+      <div class="muted">0~36 · 색상 1:1, 숫자 35:1</div>
+      <div id="rouletteSpin" class="display">대기중…</div>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn-odd" data-roulette="RED">RED</button>
+        <button class="btn-even" data-roulette="BLACK">BLACK</button>
+      </div>
+      <div class="btn-row" style="margin-top:6px">
+        <input id="rouletteNum" type="number" placeholder="숫자(0~36)" min="0" max="36" style="flex:1; min-width:120px; border-radius:10px; border:1px solid var(--line); background:rgba(240,245,255,.8); color:#111; padding:8px 10px">
+        <button class="btn-ghost" id="rouletteNumBtn">숫자 베팅</button>
+      </div>
+      <div id="rouletteResult" class="display">결과 대기중…</div>
+    </div>
+  </div>
 </section>
+
 <!-- 로그 + 그래프 -->
 <section class="card">
-<div class="title"><h2>베팅 로그</h2><div class="sub">최근 100개 &amp; 보유금 그래프 · 타임라인</div></div>
-<div class="log" id="log"></div>
-<canvas aria-label="보유금 그래프" height="180" id="balanceChart" role="img" width="1040"></canvas>
+  <div class="title"><h2>베팅 로그</h2><div class="sub">최근 100개 & 보유금 그래프 · 타임라인</div></div>
+  <div id="log" class="log"></div>
+  <canvas id="balanceChart" width="1040" height="180" aria-label="보유금 그래프" role="img"></canvas>
 </section>
-</div> <!-- 잭팟 FX --> <div aria-hidden="true" class="boom hide" id="boom">
-<div class="boom-text">777 JACKPOT!</div>
-<div class="flash" id="flash"></div>
-<div class="ring" id="ring"></div>
-</div> <!-- 초기화 확인 패널 --> <div aria-modal="true" id="resetConfirm" role="dialog">
-<div class="hint">초기화를 진행하려면 <b>RESET</b>을 입력하세요.</div>
-<input id="resetInput" placeholder="RESET"/>
-<div class="hint">3초 대기 후 버튼이 활성화됩니다.</div>
-<div class="bar"><div id="resetBar"></div></div>
-<div class="row">
-<button class="btn-ghost" id="resetCancel">취소</button>
-<button class="btn-odd" disabled="" id="resetDo">완전 초기화</button>
-</div>
-<div class="hint" id="resetCooldownHint" style="display:none"></div>
-</div> <!-- 파산 오버레이 --> <!-- 캡차 오버레이 --> <!-- 이벤트 오버레이 --> <!-- 스킬카드 오버레이 --> <script>
+
+  </div>  <!-- 잭팟 FX -->  <div id="boom" class="boom hide" aria-hidden="true">
+    <div class="boom-text">777 JACKPOT!</div>
+    <div class="flash" id="flash"></div>
+    <div class="ring" id="ring"></div>
+  </div>  <!-- 초기화 확인 패널 -->  <div id="resetConfirm" aria-modal="true" role="dialog">
+    <div class="hint">초기화를 진행하려면 <b>RESET</b>을 입력하세요.</div>
+    <input id="resetInput" placeholder="RESET" />
+    <div class="hint">3초 대기 후 버튼이 활성화됩니다.</div>
+    <div class="bar"><div id="resetBar"></div></div>
+    <div class="row">
+      <button class="btn-ghost" id="resetCancel">취소</button>
+      <button class="btn-odd" id="resetDo" disabled>완전 초기화</button>
+    </div>
+    <div class="hint" id="resetCooldownHint" style="display:none"></div>
+  </div>  <!-- 파산 오버레이 -->  <div id="bankruptOverlay" class="overlay" aria-modal="true" role="dialog">
+    <div class="modal">
+      <h3>파산했습니다 💥</h3>
+      <p>화면을 잠시 어둡게 했습니다. 다시 시작하시겠습니까?</p>
+      <div style="display:flex; gap:8px; justify-content:center; margin-top:8px">
+        <button class="btn-ghost" id="bkCancel">아니오</button>
+        <button class="btn-rand" id="bkRestart">다시 시작</button>
+      </div>
+    </div>
+  </div>  <!-- 캡차 오버레이 -->  <div id="captchaOverlay" class="overlay" aria-modal="true" role="dialog">
+    <div class="modal">
+      <h3>잠깐! 사람인지 확인 👀</h3>
+      <p id="captchaQ">7 + 5 = ?</p>
+      <input id="captchaA" placeholder="정답" style="width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--line); background:rgba(240,245,255,.85); color:#111">
+      <div style="display:flex; gap:8px; justify-content:center; margin-top:8px">
+        <button class="btn-ghost" id="captchaCancel">취소</button>
+        <button class="btn-rand" id="captchaOk">확인</button>
+      </div>
+      <div class="hint">잭팟/역잭팟 이후 일정 시간 입력이 잠시 비활성화 됩니다.</div>
+    </div>
+  </div>  <!-- 이벤트 오버레이 -->  <div id="eventOverlay" class="overlay" aria-modal="true" role="dialog">
+    <div class="modal">
+      <h3>행운의 카드 ✨</h3>
+      <p class="muted">랜덤 버프/디버프가 발생합니다.</p>
+      <div class="choices" id="eventChoices"></div>
+    </div>
+  </div>  <!-- 스킬카드 오버레이 -->  <div id="skillOverlay" class="overlay" aria-modal="true" role="dialog">
+    <div class="modal">
+      <h3>스킬카드 선택 🃏</h3>
+      <p class="muted">100회 시도마다 1개 선택</p>
+      <div class="choices" id="skillChoices"></div>
+    </div>
+  </div><script>
 (function(){ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded', init);} else {init();} })();
 
 function init(){
@@ -808,7 +759,7 @@ const FX = (function(){
 })();
 
 /* ===== 안내(토스트 대체) ===== */
-(function(){ const msgs=["환영합니다! 동언뱃 v2.","게임은 재미로만! 과몰입 금지."]; let i=0; const div=document.createElement('div'); div.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:20000;background:rgba(16,20,33,.8);backdrop-filter:blur(10px);padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.08);font-weight:800'; document.body.appendChild(div); function next(){ if(i>=msgs.length){div.remove(); return;} div.textContent=msgs[i++]; setTimeout(next,1200);} next(); })();
+(function(){ const msgs=["환영합니다! 동동뱃 v2.","게임은 재미로만! 과몰입 금지."]; let i=0; const div=document.createElement('div'); div.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:20000;background:rgba(16,20,33,.8);backdrop-filter:blur(10px);padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.08);font-weight:800'; document.body.appendChild(div); function next(){ if(i>=msgs.length){div.remove(); return;} div.textContent=msgs[i++]; setTimeout(next,1200);} next(); })();
 
 /* ===== 잭팟 증액(느리게, 성장 계수 적용) ===== */
 (function incJP(){
@@ -1324,31 +1275,125 @@ document.addEventListener('visibilitychange', ()=>{ if(document.hidden) FX.stop(
 }
 </script>
 <button class="btn-ghost" id="resetBtn">초기화</button>
+
 <script>
 (function(){
-  function ready(fn){ if(document.readyState!='loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
+  // Defer until DOM is ready and original init has run
+  function ready(fn){ if(document.readyState!=='loading'){ fn(); } else { document.addEventListener('DOMContentLoaded', fn); } }
   ready(function(){
+    // 1) Patch FX to stop using WebGL and instead toggle bg animation
     try{
-      var body = document.body;
-      var sel = document.getElementById('themeSelect');
-      if(body && !body.classList.contains('theme-dark')){
-        body.classList.remove('theme-light');
-        body.classList.add('theme-dark');
+      if (window.FX && typeof window.FX.start === 'function' && typeof window.FX.stop === 'function'){
+        window.FX.start = function(){ document.body.classList.remove('bg-paused'); };
+        window.FX.stop  = function(){ document.body.classList.add('bg-paused'); };
+        // Also keep the canvas hidden
+        var fxc = document.getElementById('fxCanvas'); if(fxc){ fxc.style.display='none'; }
       }
-      if(sel){
-        // Set select to '다크' if not already
-        var opt = Array.from(sel.options).find(o=>/다크/.test(o.textContent));
-        if(opt){ sel.value = opt.value; }
+    }catch(e){ console.warn('FX patch skipped', e); }
+
+    // 2) Sidebar toggle
+    var sidebar = document.getElementById('sidebar');
+    var toggle  = document.getElementById('sidebarToggle');
+    if(toggle && sidebar){
+      toggle.addEventListener('click', function(){ sidebar.classList.toggle('open'); });
+      // close on overlay click
+      sidebar.addEventListener('click', function(e){ if(e.target===sidebar) sidebar.classList.remove('open'); });
+    }
+
+    // Helpers
+    function wrap(labelText, el){
+      var wrap = document.createElement('label');
+      wrap.style.display = 'flex';
+      wrap.style.alignItems = 'center';
+      wrap.style.gap = '8px';
+      wrap.textContent = labelText + ' ';
+      if (el) wrap.appendChild(el);
+      return wrap;
+    }
+
+    // 3) Move existing controls into sidebar
+    var slot = document.getElementById('sbSettingsSlot');
+    if (slot){
+      var alignSel = document.getElementById('alignSelect');
+      var themeSel = document.getElementById('themeSelect');
+      var fxTgl    = document.getElementById('fxToggle');
+      var saveBtn  = document.getElementById('savePref');
+
+      // remove the original container row that held these
+      try{
+        var originalRow = alignSel ? alignSel.closest('.btn-row') : null;
+        if(originalRow){ originalRow.classList.add('moved-inline-settings'); }
+      }catch(_){}
+
+      // If elements don't exist (unlikely), create them
+      if(!alignSel){
+        alignSel = document.createElement('select'); alignSel.id='alignSelect';
+        ['flex-start','center','flex-end'].forEach(function(v,i){
+          var o=document.createElement('option'); o.value=v; o.textContent= i===0?'왼쪽':(i===1?'가운데':'오른쪽'); alignSel.appendChild(o);
+        });
       }
-      // Ensure background animation reflects current toggle
-      var fx = document.getElementById('fxToggle');
-      if(fx){
-        var apply = ()=> body.classList.toggle('bg-animated', !!fx.checked);
-        apply();
-        fx.addEventListener('change', apply);
+      if(!themeSel){
+        themeSel = document.createElement('select'); themeSel.id='themeSelect';
+        [{v:'dark',t:'다크'},{v:'light',t:'라이트'}].forEach(function(x){
+          var o=document.createElement('option'); o.value=x.v; o.textContent=x.t; themeSel.appendChild(o);
+        });
       }
-    }catch(e){}
+      if(!fxTgl){
+        fxTgl = document.createElement('input'); fxTgl.type='checkbox'; fxTgl.id='fxToggle'; fxTgl.checked=true;
+      }
+      if(!saveBtn){
+        saveBtn = document.createElement('button'); saveBtn.id='savePref'; saveBtn.className='btn-ghost'; saveBtn.textContent='적용';
+        saveBtn.addEventListener('click', function(){ location.reload(); });
+      }
+
+      // Relabel the background toggle
+      var fxLabel = wrap('배경 애니메이션', fxTgl);
+      var alignLabel = wrap('버튼 정렬:', alignSel);
+      var themeLabel = wrap('테마:', themeSel);
+
+      slot.appendChild(alignLabel);
+      slot.appendChild(themeLabel);
+      slot.appendChild(fxLabel);
+
+      // Move the existing save/apply + reset buttons to the sidebar actions
+      var actions = sidebar.querySelector('.sidebar-actions');
+      if(actions){
+        actions.appendChild(saveBtn);
+        // Move or create reset button
+        var resetBtn = document.getElementById('resetBtn');
+        if(resetBtn){
+          actions.appendChild(resetBtn);
+          resetBtn.style.position='static';
+          resetBtn.style.right = '';
+          resetBtn.style.bottom= '';
+        }else{
+          var rb = document.createElement('button'); rb.id='resetBtn'; rb.className='btn-odd'; rb.textContent='초기화';
+          actions.appendChild(rb);
+          // wire up
+          rb.addEventListener('click', function(){
+            var panel = document.getElementById('resetConfirm');
+            if(panel){ panel.style.display = 'block'; }
+          });
+        }
+      }
+
+      // Hide the inline reset button in game section if present (moved to sidebar)
+      var resetInline = document.getElementById('resetBtnInLine');
+      if(resetInline){ resetInline.style.display='none'; }
+    }
+
+    // 4) Title/header text update safety (in case some text nodes remained)
+    try{
+      document.title = document.title.replace(/동동뱃?/, '『동동뱃』 v2');
+      var h1 = document.querySelector('h1'); if(h1){ h1.textContent = h1.textContent.replace(/동동뱃/g, '동동뱃'); }
+      var bar = document.getElementById('balanceBar');
+      if(bar){
+        var b = bar.querySelector('div'); if(b){ b.innerHTML = b.innerHTML.replace(/동동뱃/g,'동동뱃'); }
+      }
+    }catch(_){}
   });
 })();
-</script></body>
+</script>
+
+</body>
 </html>
