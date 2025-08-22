@@ -142,6 +142,89 @@ body::before{ display:none !important; background:none !important; }
 
 /* Sidebar panel stays left; just the toggle moved */
 .sidebar .sb-inner{ left: 12px !important; right: auto; }
+</style><style>
+/* === Overrides (phase 3) === */
+
+/* Bottom-right floating hamburger */
+.sb-toggle{
+  left:auto !important; top:auto !important;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: max(16px, env(safe-area-inset-bottom));
+  width: 44px; height: 44px; border-radius: 12px;
+  font-size: 22px; line-height: 1; display:flex; align-items:center; justify-content:center;
+}
+
+/* Kill any dimming overlays that hide background */
+body::before{ display:none !important; background:none !important; }
+#fxCanvas{ display:none !important; }
+
+/* DARK (default): black→navy vivid multi-layer gradient */
+body{
+  background:
+    radial-gradient(900px 600px at 15% 15%, rgba(40,60,160,.35), transparent 60%),
+    radial-gradient(900px 600px at 85% 85%, rgba(0,160,190,.20), transparent 60%),
+    radial-gradient(700px 500px at 50% 30%, rgba(180,140,40,.18), transparent 60%),
+    linear-gradient(135deg,#05070C 0%, #0A1020 28%, #0D1A35 52%, #0A1020 76%, #05070C 100%) fixed;
+  background-size: 360% 360%, 360% 360%, 360% 360%, 420% 420%;
+}
+body.bg-animated{
+  animation: gradShiftUltra 14s ease-in-out infinite alternate;
+}
+
+/* LIGHT: vivid yellow→orange→red */
+body.theme-light{
+  background:
+    radial-gradient(1000px 700px at 12% 18%, rgba(255,245,120,.45), transparent 62%),
+    radial-gradient(900px 650px at 88% 82%, rgba(255,170,90,.35), transparent 62%),
+    radial-gradient(800px 520px at 50% 30%, rgba(255,100,100,.25), transparent 62%),
+    linear-gradient(135deg,#fff6a0 0%, #ffd37a 25%, #ff9966 55%, #ff6b6b 85%) fixed;
+  background-size: 380% 380%, 380% 380%, 380% 380%, 440% 440%;
+}
+body.theme-light.bg-animated{
+  animation: gradShiftUltra 16s ease-in-out infinite alternate;
+}
+
+/* Tighter motion path */
+@keyframes gradShiftUltra{
+  0%{background-position: 0% 50%, 100% 50%, 50% 0%, 0% 0%}
+  25%{background-position: 25% 25%, 75% 75%, 60% 20%, 50% 50%}
+  50%{background-position: 50% 0%, 50% 100%, 50% 30%, 100% 100%}
+  75%{background-position: 75% 75%, 25% 25%, 40% 60%, 50% 50%}
+  100%{background-position: 100% 50%, 0% 50%, 50% 100%, 0% 0%}
+}
+
+/* Top balance bar: full-bleed & sticky, preserve look */
+.balance-bar{
+  position: sticky !important;
+  top: 0;
+  left: 0; right: 0;
+  width: 100%;
+  margin: 0 !important;
+  border-radius: 0 0 12px 12px !important;
+  padding-left: max(12px, env(safe-area-inset-left));
+  padding-right: max(12px, env(safe-area-inset-right));
+  z-index: 100;
+}
+.container{ padding-top: 10px; } /* sticky stays in flow, so small offset is enough */
+
+/* Light mode: ensure the far-back frame/box also turns light */
+.slot-frame{
+  background: linear-gradient(180deg, #0d1220, #1b2438) !important;
+}
+.theme-light .slot-frame{
+  background: linear-gradient(180deg, #fbfcff, #ecf2ff) !important;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.04) !important;
+  border: 1px solid #e8eef9 !important;
+}
+
+/* If any generic "backdrop" layers exist, make them transparent */
+.bg-dim, .backdrop, .veil, .scrim, .shadow-layer{
+  background: transparent !important;
+}
+
+/* Cards: keep style but a bit more transparent so background is more visible */
+.card{ background: rgba(16,20,33,.36) !important; }
+.theme-light .card{ background: rgba(255,255,255,.82) !important; }
 </style></head>
 <body class="theme-dark"><button class="sb-toggle" id="sidebarToggle">☰</button>
 <canvas id="fxCanvas"></canvas> <!-- 상단 잔액 바 --> <div class="balance-bar" id="balanceBar">
