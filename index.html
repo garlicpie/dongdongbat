@@ -131,7 +131,7 @@ body.theme-dark.bg-animated{
 }
 
 /* Force-hide any old WebGL/overlay remnants */
-body::before{ display:none !important; }
+/* removed body::before hide */
 #fxCanvas{ display:none !important; }
 
 /* Light mode back-most preview/window boxes should become white */
@@ -327,7 +327,7 @@ body.theme-light{
 body.theme-light.bg-animated{ animation: gradShift 45s ease-in-out infinite alternate; }
 
 /* Kill any legacy bg effects */
-body::before{ display:none !important; }
+/* removed body::before hide */
 #fxCanvas{ display:none !important; }
 
 /* === LIGHT MODE "deep" whites for far-back containers === */
@@ -470,6 +470,10 @@ body{ padding-top:60px; } /* push down body content */
   color:#111 !important;
   border-color:#e7eaf3 !important;
 }
+</style><style>
+/* Guarantee gradient visible on root */
+html, body { min-height: 100%; }
+html{ background: inherit !important; }
 </style></head>
 <body class="theme-dark has-sticky-balance"><div class="sidebar" id="sidebar"><div class="sb-inner"><div class="sb-title">설정</div><div class="sb-group" id="sb-controls"><div class="sb-row"><label>버튼 정렬:
       <select id="alignSelect" style="padding:8px 10px; border-radius:10px; border:1px solid var(--line); background:rgba(240,245,255,.6); color:var(--text)">
@@ -1606,48 +1610,27 @@ document.addEventListener('visibilitychange', ()=>{ if(document.hidden) FX.stop(
     if(tgl && sb){
       tgl.addEventListener('click', function(){ sb.classList.toggle('open'); });
     }
+    // Background animation default: turn on unless explicitly disabled
     var fx = document.getElementById('fxToggle');
-    var save = document.getElementById('savePref');
-    function applyBg(){
-      if(!fx) return;
-      document.body.classList.toggle('bg-animated', !!fx.checked);
-    }
-    // Apply once at boot (respect stored pref if code set it already)
-    try{
-      // If original code already stored KEY.FX, fx.checked reflects it
-      applyBg();
-    }catch(e){}
-    if(save){
-      save.addEventListener('click', function(){ applyBg(); });
-    }
-  });
-})();
-
-
-(function(){
-  function ready(fn){ if(document.readyState!=='loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
-  ready(function(){
-    var b = document.body;
-    // If neither theme-dark nor theme-light is present, default to dark
-    if(!b.classList.contains('theme-dark') && !b.classList.contains('theme-light')){
-      b.classList.add('theme-dark');
-    }
-    // If there's a themeSelect, align it to 'dark' by default unless storage says otherwise
-    try{
-      var sel = document.getElementById('themeSelect');
-      if(sel && (!localStorage.getItem('theme') || localStorage.getItem('theme')==='dark')){
-        sel.value = 'dark';
+    function ensureAnimDefault(){
+      try{
+        var stored = localStorage.getItem('FX') || localStorage.getItem('fx') || "";
+        var disabled = (stored && (stored==="0" || stored==="false"));
+        if(fx){
+          if(!disabled){ fx.checked = true; }
+          document.body.classList.toggle('bg-animated', !!fx.checked);
+          fx.addEventListener('change', function(){
+            document.body.classList.toggle('bg-animated', !!fx.checked);
+          });
+        }else{
+          // No toggle present: force animation on
+          document.body.classList.add('bg-animated');
+        }
+      }catch(e){
+        document.body.classList.add('bg-animated');
       }
-    }catch(e){}
-    // Ensure background animation toggle affects new palettes too
-    var fx = document.getElementById('fxToggle');
-    var save = document.getElementById('savePref');
-    function applyBg(){
-      if(!fx) return;
-      document.body.classList.toggle('bg-animated', !!fx.checked);
     }
-    applyBg();
-    if(save){ save.addEventListener('click', applyBg); }
+    ensureAnimDefault();
   });
 })();
 </script><script>
