@@ -69,6 +69,103 @@
 
 @media (prefers-reduced-motion: reduce){ *{ animation: none !important; transition: none !important } } </style>
 
+
+<style id="casino-glass-overrides">
+/* === Casino Red/Gold background & Apple-like Liquid Glass surfaces === */
+
+/* Background: deep burgundy base with luxurious gold/red glows */
+body{
+  background:
+    radial-gradient(1200px 800px at 12% 18%, #2b0707 0%, #190404 52%, #0b0606 100%) !important;
+}
+body::before{
+  content:"";
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(1000px 720px at 12% 12%, rgba(240,60,60,.32), transparent 60%),
+    radial-gradient(900px 640px at 85% 18%, rgba(255,180,64,.30), transparent 65%),
+    radial-gradient(700px 560px at 50% 82%, rgba(255,220,128,.18), transparent 60%);
+  filter: saturate(1.25) contrast(1.08);
+  animation: casinoGlow 18s ease-in-out infinite alternate;
+}
+/* subtle glitter overlay */
+body::after{
+  content:"";
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  background-image:
+    radial-gradient(circle at 50% 50%, rgba(255,255,255,.12) 0 1px, transparent 1.2px);
+  background-size: 3px 3px;
+  opacity:.06;
+  mix-blend-mode: overlay;
+}
+@keyframes casinoGlow {
+  0%   { filter: hue-rotate(0deg)  saturate(1.1) }
+  100% { filter: hue-rotate(12deg) saturate(1.3) }
+}
+
+/* Tint the existing WebGL canvas toward warm reds/golds */
+#fxCanvas{
+  filter: hue-rotate(140deg) saturate(1.35) brightness(.95);
+}
+
+/* Universal Apple-like liquid glass surface */
+:root{
+  --glass-bg: rgba(255,255,255,.07);
+  --glass-stroke: rgba(255,255,255,.22);
+  --glass-inner: rgba(255,255,255,.12);
+  --glass-shadow: rgba(0,0,0,.38);
+}
+.casino-glass,
+.card,.item,.balance-bar,.row,.display,.slot-frame,
+#resetConfirm,.modal,.stat,.reel{
+  background: var(--glass-bg) !important;
+  border: 1px solid var(--glass-stroke) !important;
+  border-radius: 14px;
+  backdrop-filter: blur(16px) saturate(1.6);
+  -webkit-backdrop-filter: blur(16px) saturate(1.6);
+  box-shadow: inset 0 1px 0 var(--glass-inner), 0 10px 28px var(--glass-shadow) !important;
+  position: relative;
+}
+/* top highlight / soft specular */
+.card::before,.item::before,.balance-bar::before,.row::before,
+.display::before,.slot-frame::before,#resetConfirm::before,.modal::before{
+  content:""; position:absolute; inset:0; pointer-events:none; border-radius:inherit;
+  background:
+    linear-gradient(to bottom, rgba(255,255,255,.35), transparent 42%),
+    radial-gradient(120% 100% at -10% 0%, rgba(255,255,255,.18), transparent 40%);
+  mix-blend-mode: screen;
+  opacity:.9;
+}
+
+/* Inputs also glassy */
+input, select{
+  background: rgba(255,255,255,.14) !important;
+  color: var(--text);
+  border: 1px solid var(--glass-stroke) !important;
+  backdrop-filter: blur(10px) saturate(1.4);
+  -webkit-backdrop-filter: blur(10px) saturate(1.4);
+}
+
+/* Slightly brighter red/green primary buttons to match casino palette */
+.btn-odd{ background: linear-gradient(180deg,#ff557a,#9f1330) !important; border-color:#5e0f2b !important }
+.btn-even{ background: linear-gradient(180deg,#1ad19b,#0e6f53) !important; border-color:#0b4d3a !important }
+.btn-rand{ background: linear-gradient(180deg,#ffb200,#b56e00) !important; border-color:#6a4300 !important }
+
+/* Slot reels a bit shinier */
+.reel{
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 6px 18px rgba(0,0,0,.35) !important;
+}
+.sym-7{ color:#ff4040 !important; text-shadow: 0 0 8px rgba(255,64,64,.65) !important }
+
+/* Balance chart glass frame */
+#balanceChart{
+  background: rgba(255,255,255,.06) !important;
+  border: 1px solid var(--glass-stroke) !important;
+  border-radius: 12px !important;
+  box-shadow: inset 0 1px 0 var(--glass-inner), 0 8px 22px var(--glass-shadow) !important;
+}
+</style>
+
 </head>
 <body>
   <canvas id="fxCanvas"></canvas>  <!-- 상단 잔액 바 -->  <div id="balanceBar" class="balance-bar">
@@ -143,6 +240,16 @@
     <span class="sub">(직접 조절 가능)</span>
   </div>
 </section>
+
+
+  <!-- JSON Save/Load (Export/Import) -->
+  <div class="btn-row" style="gap:8px; margin-top:10px; flex-wrap:wrap">
+    <button class="btn-ghost" id="exportJsonBtn">JSON 내보내기</button>
+    <button class="btn-ghost" id="importJsonBtn">JSON 불러오기</button>
+    <input type="file" id="importJsonInput" accept="application/json" style="display:none">
+    <span class="sub">현재 상태/로그를 JSON으로 저장하고 불러옵니다.</span>
+  </div>
+
 
 <!-- 테이블 & 퀵 게임 -->
 <section class="card">
@@ -1213,5 +1320,77 @@ document.addEventListener('visibilitychange', ()=>{ if(document.hidden) FX.stop(
 }
 </script>
 <button class="btn-ghost" id="resetBtn">초기화</button>
+
+<script>
+// === JSON Export / Import for 『동언뱃』 v2 ===
+// Works independently of the main init() closure by reading/writing localStorage keys then reloading.
+(function(){
+  const $ = (s)=>document.querySelector(s);
+  const exportBtn = $("#exportJsonBtn");
+  const importBtn = $("#importJsonBtn");
+  const input     = $("#importJsonInput");
+  if(!exportBtn || !importBtn || !input) return;
+
+  // Keys used by the game (kept in sync with index.js): fallback to a broad set here.
+  const KEYS = [
+    "bal","peak","min","wins","loss","jackpot","logJSON",
+    "theme","align","fx","upLevel","jpLevel",
+    "loanPrincipal","loansTaken",
+    "resetTimestamp","shieldRev","shieldBk","noLoseUntil","jpModeUntil",
+    "failBias","rewardBoost","ver"
+  ];
+
+  function exportJSON(){
+    const data = { __app: "『동언뱃』 v2", note:"게임 상태/로그 저장본", exportedAt: new Date().toISOString() };
+    KEYS.forEach(k=>{
+      const v = localStorage.getItem(k);
+      if(v !== null) data[k] = v;
+    });
+    // Also attach current user agent for context
+    data.__ua = navigator.userAgent;
+
+    const blob = new Blob([ JSON.stringify(data, null, 2) ], { type:"application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "dongEonBet_v2_" + new Date().toISOString().replace(/[:.]/g,"-") + ".json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=> URL.revokeObjectURL(a.href), 2000);
+  }
+
+  function importJSON(file){
+    const reader = new FileReader();
+    reader.onload = () => {
+      try{
+        const obj = JSON.parse(reader.result);
+        let restored = 0;
+        KEYS.forEach(k=>{
+          if(Object.prototype.hasOwnProperty.call(obj,k)){
+            localStorage.setItem(k, String(obj[k]));
+            restored++;
+          }
+        });
+        // Reload the page to let the game rehydrate from localStorage
+        alert("불러오기 완료 ("+restored+"개 키). 페이지를 새로고침합니다.");
+        location.reload();
+      }catch(e){
+        alert("JSON 파싱 실패: " + e.message);
+      }
+    };
+    reader.readAsText(file, "utf-8");
+  }
+
+  exportBtn.addEventListener("click", exportJSON);
+  importBtn.addEventListener("click", ()=> input.click());
+  input.addEventListener("change", (e)=>{
+    const f = e.target.files && e.target.files[0];
+    if(!f) return;
+    importJSON(f);
+    input.value = "";
+  });
+})();
+</script>
+
 </body>
 </html>
