@@ -69,7 +69,101 @@
 
 /* 오버레이(파산/캡차/이벤트/스킬) */ .overlay{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:12000; background:rgba(0,0,0,.55); backdrop-filter: blur(8px); } .overlay.show{ display:flex } .modal{ background:rgba(16,20,33,.7); border:1px solid rgba(255,255,255,.08); padding:16px; border-radius:14px; width:min(92vw,420px); color:var(--text); text-align:center; box-shadow: 0 10px 32px rgba(0,0,0,.35); } .modal h3{ margin:0 0 10px; } .choices{ display:grid; gap:8px; } .tag{ display:inline-block; padding:2px 8px; border-radius:999px; border:1px solid rgba(255,255,255,.15); font-size:12px; color:var(--muted) }
 
-@media (prefers-reduced-motion: reduce){ *{ animation: none !important; transition: none !important } } </style>
+@media (prefers-reduced-motion: reduce){ *{ animation: none !important; transition: none !important } } 
+body.theme-dark{
+  background: linear-gradient(135deg,#000000 0%,#0a0f3c 50%,#001a66 100%) fixed;
+  background-size: 180% 180%;
+}
+body.theme-dark.bg-animated{
+  animation: gradShiftDark 90s ease-in-out infinite alternate;
+}
+@keyframes gradShiftDark{
+  0%{background-position:0% 0%}
+  50%{background-position:100% 100%}
+  100%{background-position:0% 0%}
+}
+
+
+/* === Updated vivid gradient backgrounds & faster animation === */
+body{
+  background: linear-gradient(135deg,
+    #fff171 0%,
+    #ffd35a 18%,
+    #ff9e52 36%,
+    #ff6b6b 54%,
+    #ff3b6e 72%,
+    #ff1f4a 100%
+  ) fixed !important;
+  background-size: 300% 300% !important;
+}
+body.bg-animated{
+  animation: gradShift 22s ease-in-out infinite !important;
+}
+@keyframes gradShift{
+  0%{background-position:0% 50%}
+  25%{background-position:50% 0%}
+  50%{background-position:100% 50%}
+  75%{background-position:50% 100%}
+  100%{background-position:0% 50%}
+}
+
+/* Dark mode gradient (검정~남색 계열) */
+body.theme-dark{
+  background: linear-gradient(135deg,
+    #06070c 0%,
+    #0a0e1a 18%,
+    #0d1631 36%,
+    #0e1f47 54%,
+    #0f2a5f 72%,
+    #123777 100%
+  ) fixed !important;
+  background-size: 320% 320% !important;
+}
+body.theme-dark.bg-animated{
+  animation: gradShiftDark 18s ease-in-out infinite !important;
+}
+@keyframes gradShiftDark{
+  0%{background-position:0% 50%}
+  25%{background-position:50% 0%}
+  50%{background-position:100% 50%}
+  75%{background-position:50% 100%}
+  100%{background-position:0% 50%}
+}
+
+/* Force-hide any old WebGL/overlay remnants */
+body::before{ display:none !important; }
+#fxCanvas{ display:none !important; }
+
+/* Light mode back-most preview/window boxes should become white */
+.theme-light .theme_preview_window,
+.theme-light .theme_preview_menu,
+.theme-light .theme_preview_header{
+  background-color:#ffffff !important;
+  box-shadow: 0 1px 0 rgba(0,0,0,.05), 0 10px 30px rgba(0,0,0,.08) !important;
+}
+
+/* Top info bar should stick to top and span full width */
+#topInfoBar{
+  position: sticky;
+  top: 0;
+  left: 0; right: 0;
+  z-index: 5500;
+}
+
+/* Sidebar toggle when placed inside the top bar */
+#topInfoBar .sb-toggle{
+  position: relative;
+  left: auto; top: auto;
+  margin-right: 10px;
+}
+
+/* Adjust original floating toggle (fallback) */
+.sb-toggle{
+  border-radius:10px;
+  padding: 8px 12px;
+  font-weight:900;
+}
+</style>
 <style>
 /* === New Background Gradients === */
 
@@ -203,8 +297,181 @@ body.bg-animated{
 /* Keep sidebar panel styles consistent across themes */
 .sidebar{ pointer-events:none; }
 .sidebar .sb-inner{ pointer-events:auto; }
+</style><style>
+.theme-light .theme_preview_window{
+  background-color: #ffffff !important;
+}
+</style><style>
+/* === THEME & BACKGROUND === */
+/* Default to dark theme */
+:root{ color-scheme: dark light; }
+body{ 
+  /* dark default */
+  background: linear-gradient(135deg,#050508 0%, #0a0f2a 33%, #0b173a 66%, #0a0f2a 100%) fixed;
+  background-size: 400% 400%;
+  color: var(--text, #e9eef7);
+}
+body.bg-animated{ animation: gradShift 45s ease-in-out infinite alternate; }
+@keyframes gradShift{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+
+/* Light mode background becomes warm yellow→orange→red */
+body.theme-light{
+  background: linear-gradient(135deg,#fff7b3 0%, #ffd38a 20%, #ffb86c 40%, #ff8a6b 60%, #ff6b6b 80%, #ff8a6b 100%) fixed;
+  background-size: 400% 400%;
+}
+/* More visible animation in light too when enabled */
+body.theme-light.bg-animated{ animation: gradShift 45s ease-in-out infinite alternate; }
+
+/* Kill any legacy bg effects */
+body::before{ display:none !important; }
+#fxCanvas{ display:none !important; }
+
+/* === LIGHT MODE "deep" whites for far-back containers === */
+.theme-light .page, 
+.theme-light .wrapper,
+.theme-light .container,
+.theme-light .content,
+.theme-light .root,
+.theme-light .panel,
+.theme-light .box,
+.theme-light .card {
+  background: #ffffff !important;
+  color: #111 !important;
+}
+
+/* === TOP BAR (balance/jackpot) STICKY & FULL-WIDTH === */
+.balance-bar, #balanceBar, .top-balance, header.balance, .topbar{
+  position: fixed !important;
+  top: 0; left: 0; right: 0;
+  width: 100% !important;
+  z-index: 4000;
+  margin: 0 !important;
+  border-radius: 0 !important;
+}
+/* leave space for it */
+body.has-sticky-balance{ padding-top: 64px; }
+/* ensure backgrounds adapt to theme */
+.balance-bar, #balanceBar, .top-balance, header.balance, .topbar{
+  backdrop-filter: blur(10px) saturate(1.2);
+  background: rgba(10,12,20,.6);
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.theme-light .balance-bar, .theme-light #balanceBar, .theme-light .top-balance, .theme-light header.balance, .theme-light .topbar{
+  background: rgba(255,255,255,.75);
+  border-bottom-color: #e6e9f3;
+  color: #111;
+}
+
+/* === SIDEBAR TOGGLE: HAMBURGER + RELOCATED INSIDE TOP BAR LEFT === */
+.sb-toggle{
+  display:inline-flex; align-items:center; justify-content:center;
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(16,20,33,.55);
+  margin: 8px 10px 8px 12px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.18);
+}
+.theme-light .sb-toggle{ background: rgba(0,0,0,0.04); border-color:#e3e7f2; }
+
+/* three bars */
+.sb-toggle .bars{ position: relative; width: 20px; height: 14px; display:block; }
+.sb-toggle .bars, .sb-toggle .bars:before, .sb-toggle .bars:after{
+  content:""; display:block; height:2px; border-radius:2px;
+  background: currentColor;
+  position:absolute; left:0; right:0;
+}
+.sb-toggle .bars{ top: 6px; }
+.sb-toggle .bars:before{ top:-6px; }
+.sb-toggle .bars:after{ top:6px; }
+
+/* === SIDEBAR PANEL remains === */
+.sidebar{ position: fixed; inset:0; z-index: 5000; pointer-events:none; }
+.sidebar .sb-inner{
+  position: fixed; left: 12px; top: 56px; bottom: 12px; width: 300px;
+  transform: translateX(-320px);
+  transition: transform .22s ease;
+  background: rgba(16,20,33,.82); border:1px solid rgba(255,255,255,.08);
+  border-radius: 14px; padding: 14px; pointer-events:auto;
+  backdrop-filter: blur(14px) saturate(1.15);
+  box-shadow: 0 16px 48px rgba(0,0,0,.35);
+  overflow:auto;
+}
+.theme-light .sidebar .sb-inner{ background: rgba(255,255,255,.92); border-color:#e3e7f2; color:#111; }
+.sidebar.open .sb-inner{ transform: translateX(0); }
+
+/* Optional: ensure main content doesn't hide behind sidebar when narrow */
+@media (max-width: 640px){
+  .sidebar .sb-inner{ width: 86vw; }
+}
+</style><style>
+/* === Updated vibrant gradient backgrounds === */
+body{
+  background: linear-gradient(270deg, #ffec61, #ff8a00, #ff003c, #ff8a00, #ffec61);
+  background-size: 600% 600%;
+}
+body.bg-animated{
+  animation: gradShift 20s ease infinite;
+}
+@keyframes gradShift{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+/* Dark theme gradient */
+body.theme-dark{
+  background: linear-gradient(270deg, #000000, #0f2027, #203a43, #2c5364, #000000);
+  background-size: 600% 600%;
+}
+body.theme-dark.bg-animated{
+  animation: gradShiftDark 25s ease infinite;
+}
+@keyframes gradShiftDark{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+
+/* Sidebar toggle styling */
+.sb-toggle{
+  background:none;
+  font-size:22px;
+  border:none;
+  padding:8px 10px;
+  color:var(--text);
+}
+.theme-light .sb-toggle{ color:#111; background:none; border:none; }
+
+/* Sidebar same as before */
+.sidebar{ position:fixed; inset:0; z-index:5000; pointer-events:none;}
+.sidebar .sb-inner{ position:fixed; left:12px; top:56px; bottom:12px; width:300px;
+  transform:translateX(-320px); transition:transform .22s ease;
+  background:rgba(16,20,33,.85); border-radius:14px; padding:14px;
+  pointer-events:auto; overflow:auto; backdrop-filter:blur(14px) saturate(1.15);}
+.sidebar.open .sb-inner{ transform:translateX(0);}
+</style><style>
+.theme-light .card, .theme-light .balance-bar{
+  background: #fff !important;
+  color: #000 !important;
+}
+</style><style>
+.balance-bar.fullwidth{
+  position:fixed; top:0; left:0; right:0; width:100%;
+  z-index:4000;
+}
+body{ padding-top:60px; } /* push down body content */
+</style><style>
+.theme-light [data-surface="back"]{
+  background-color:#ffffff !important;
+  color:#111 !important;
+  border-color:#e7eaf3 !important;
+}
 </style></head>
-<body class="theme-dark"><div class="sidebar" id="sidebar"><div class="sb-inner"><div class="sb-title">설정</div><div class="sb-group" id="sb-controls"><div class="sb-row"><label>버튼 정렬:
+<body class="theme-dark has-sticky-balance"><div class="sidebar" id="sidebar"><div class="sb-inner"><div class="sb-title">설정</div><div class="sb-group" id="sb-controls"><div class="sb-row"><label>버튼 정렬:
       <select id="alignSelect" style="padding:8px 10px; border-radius:10px; border:1px solid var(--line); background:rgba(240,245,255,.6); color:var(--text)">
 <option value="flex-start">왼쪽</option>
 <option value="center">가운데</option>
@@ -212,11 +479,11 @@ body.bg-animated{
 </select>
 </label><label style="margin-left:10px">테마:
       <select id="themeSelect" style="padding:8px 10px; border-radius:10px; border:1px solid var(--line); background:rgba(240,245,255,.6); color:var(--text)">
-<option value="dark">다크</option>
+<option selected="selected" value="dark">다크</option>
 <option value="light">라이트</option>
 </select>
 </label><label style="display:flex; gap:6px; align-items:center"><input checked="" id="fxToggle" type="checkbox"/> 배경 애니메이션</label></div><div class="sb-row"><button class="btn-ghost" id="savePref">적용</button><button class="btn-ghost" id="resetBtn">초기화</button></div></div></div></div>
-<canvas id="fxCanvas"></canvas> <!-- 상단 잔액 바 --> <div class="balance-bar" id="balanceBar"><button class="sb-toggle" id="sidebarToggle">☰</button>
+<canvas id="fxCanvas"></canvas> <!-- 상단 잔액 바 --> <div class="balance-bar fullwidth" id="topInfoBar" style="position:fixed; top:0; left:0; right:0; width:100%; z-index:4000;"><button class="sb-toggle" id="sidebarToggle">≡</button>
 <div><b>『동동뱃』 v2</b></div>
 <div class="balance-pill">현재 금액: <span id="balanceTop">0</span></div>
 <div class="balance-pill">잭팟: <span id="jackpotTop">₩ 1,200,000</span> (<span id="jackpotP"></span>)</div>
@@ -1355,6 +1622,34 @@ document.addEventListener('visibilitychange', ()=>{ if(document.hidden) FX.stop(
     }
   });
 })();
+
+
+(function(){
+  function ready(fn){ if(document.readyState!=='loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
+  ready(function(){
+    var b = document.body;
+    // If neither theme-dark nor theme-light is present, default to dark
+    if(!b.classList.contains('theme-dark') && !b.classList.contains('theme-light')){
+      b.classList.add('theme-dark');
+    }
+    // If there's a themeSelect, align it to 'dark' by default unless storage says otherwise
+    try{
+      var sel = document.getElementById('themeSelect');
+      if(sel && (!localStorage.getItem('theme') || localStorage.getItem('theme')==='dark')){
+        sel.value = 'dark';
+      }
+    }catch(e){}
+    // Ensure background animation toggle affects new palettes too
+    var fx = document.getElementById('fxToggle');
+    var save = document.getElementById('savePref');
+    function applyBg(){
+      if(!fx) return;
+      document.body.classList.toggle('bg-animated', !!fx.checked);
+    }
+    applyBg();
+    if(save){ save.addEventListener('click', applyBg); }
+  });
+})();
 </script><script>
 (function(){
   function ready(fn){ if(document.readyState!=='loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
@@ -1390,6 +1685,20 @@ document.addEventListener('visibilitychange', ()=>{ if(document.hidden) FX.stop(
     var bb = document.getElementById('balanceBar');
     if(bb){
       bb.style.width = '100%';
+    }
+  });
+})();
+</script><script>
+(function(){
+  function ready(fn){ if(document.readyState!=='loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
+  ready(function(){
+    // Ensure sticky padding
+    document.body.classList.add('has-sticky-balance');
+    // If topbar wasn't present at parse time, move toggle when it appears
+    var tb = document.querySelector('#balanceBar, .balance-bar, .top-balance, header.balance, .topbar');
+    var tgl = document.getElementById('sidebarToggle');
+    if(tb && tgl && tgl.parentElement !== tb){
+      tb.insertBefore(tgl, tb.firstChild);
     }
   });
 })();
