@@ -71,65 +71,140 @@
 
 @media (prefers-reduced-motion: reduce){ *{ animation: none !important; transition: none !important } } </style>
 <style>
-/* === New slow yellow↔red gradient background & overrides === */
+/* === New Background Gradients === */
+
+/* Default: Dark mode */
 body{
-  background: linear-gradient(135deg,#fff3a1 0%, #ffb86c 40%, #ff6b6b 100%) fixed;
-  background-size: 180% 180%;
+  background: linear-gradient(135deg,#000000 0%, #0b0f29 40%, #1a2149 100%) fixed;
+  background-size: 300% 300%;
 }
 body.bg-animated{
-  animation: gradShift 90s ease-in-out infinite alternate;
+  animation: gradShift 60s ease-in-out infinite alternate;
 }
 @keyframes gradShift{
   0%{background-position:0% 50%}
   50%{background-position:100% 50%}
   100%{background-position:0% 50%}
 }
-/* Disable old overlays / WebGL canvas visuals */
-body::before{ display:none !important; }
-#fxCanvas{ display:none !important; }
 
-/* Keep same background for light theme, don't override */
+/* Light mode override */
 body.theme-light{
   background: linear-gradient(135deg,#fff3a1 0%, #ffb86c 40%, #ff6b6b 100%) fixed;
 }
 
-/* === Collapsible sidebar === */
+/* === Sidebar toggle === */
 .sb-toggle{
-  position: fixed; left: 12px; top: 12px; z-index: 5001;
-  border:1px solid rgba(255,255,255,.12); border-radius:10px;
-  background: rgba(16,20,33,.75); backdrop-filter: blur(10px) saturate(1.15);
-  padding: 8px 10px; font-weight:900; color: var(--text); cursor: pointer;
-  box-shadow: 0 4px 14px rgba(0,0,0,.28);
+  position: absolute; left: 8px; top: 8px; z-index: 5001;
+  border: none; background: transparent; font-size: 22px;
+  cursor: pointer; color: inherit;
 }
-.theme-light .sb-toggle{ background: rgba(255,255,255,.75); border-color:#e3e7f2; color:#111; }
 
-.sidebar{
-  position: fixed; inset: 0 0 0 0; z-index: 5000; pointer-events: none;
-}
-.sidebar .sb-inner{
-  position: fixed; left: 12px; top: 56px; bottom: 12px; width: 300px;
-  transform: translateX(-320px);
-  transition: transform .22s ease;
-  background: rgba(16,20,33,.75); border:1px solid rgba(255,255,255,.08);
-  border-radius: 14px; padding: 14px;
-  backdrop-filter: blur(14px) saturate(1.15);
-  box-shadow: 0 16px 48px rgba(0,0,0,.35);
-  overflow: auto;
-  pointer-events: auto;
-}
-.theme-light .sidebar .sb-inner{ background: rgba(255,255,255,.82); border-color:#e3e7f2; }
-.sidebar.open .sb-inner{ transform: translateX(0); }
+/* Sidebar inner (same as before, not changing) */
+.sidebar .sb-inner{ transition: transform .22s ease; }
 
-.sb-title{ display:flex; align-items:center; justify-content:space-between; font-weight:900; margin-bottom:10px; }
-.sb-group{ display:grid; gap:10px; }
-.sb-row{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-.sb-row label{ font-size: 13px; color: var(--muted); }
-.sb-row select{ padding:8px 10px; border-radius:10px; border:1px solid var(--line); background:rgba(240,245,255,.6); color:var(--text); }
-.theme-light .sb-row select{ background:rgba(255,255,255,.7); color:#111; }
-.sidebar .btn-row{ gap:8px; }
-.sidebar #resetBtn{ position: static !important; right:auto; bottom:auto; width: 100%; }
+/* === Top bar fix === */
+.top-bar{
+  position: fixed !important;
+  top: 0; left: 0; right: 0;
+  z-index: 4000;
+}
+
+/* Make sure main content goes below */
+body{ padding-top: 60px; }
+</style><style>
+/* Light mode card/container background override */
+body.theme-light .card,
+body.theme-light .container,
+body.theme-light .top-bar{
+  background: #ffffff !important;
+  color: #111 !important;
+}
+</style><style>
+/* === Header (balance bar) should stick full-width === */
+#balanceBar.balance-bar{
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 6000;
+  width: 100%;
+}
+/* push content below fixed header */
+body { padding-top: 72px; }
+
+/* Place sidebar toggle inside header (left-aligned) */
+#balanceBar .sb-toggle{
+  position: static;
+  margin-right: 8px;
+  border-radius: 10px;
+  padding: 6px 10px;
+}
+/* Integrate look with header */
+#balanceBar .sb-toggle{ background: transparent; border-color: transparent; box-shadow: none; }
+.theme-light #balanceBar .sb-toggle{ background: transparent; border-color: transparent; color: #111; }
+#balanceBar .sb-toggle:active{ transform: translateY(1px); }
+
+/* === Densified gradient & theme-aware background === */
+/* Default to dark scheme gradient */
+body{
+  background-attachment: fixed;
+  background-size: 300% 300%;
+}
+/* Dark: black→navy family with dense stops */
+body.theme-dark{
+  background-image: linear-gradient(135deg,
+    #0b0b12 0%,
+    #0e1220 10%,
+    #0a1733 20%,
+    #0b1c45 30%,
+    #0a1733 40%,
+    #0e1220 55%,
+    #0b0b12 70%,
+    #08101d 85%,
+    #0b0b12 100%);
+}
+/* Light: yellow→orange→red with extra stops to show motion */
+body.theme-light{
+  background-image: linear-gradient(135deg,
+    #fff7b3 0%,
+    #ffe58f 12%,
+    #ffc46e 24%,
+    #ff995f 36%,
+    #ff6b6b 48%,
+    #ff995f 60%,
+    #ffc46e 72%,
+    #ffe58f 86%,
+    #fff7b3 100%);
+}
+/* More visible animation */
+body.bg-animated{
+  animation: gradShift 45s ease-in-out infinite alternate;
+}
+@keyframes gradShift{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+
+/* Remove old fx canvas entirely */
+#fxCanvas{ display:none !important; }
+
+/* Light-mode: ensure "가장 뒤 박스"도 라이트로 */
+.theme-light .container{
+  background: #ffffff;
+  color: #111;
+  border-color: #e6e8ef;
+}
+/* Dark-mode defaults (in case existing styles didn't set) */
+.theme-dark .container{
+  background: rgba(20,22,30,.6);
+  color: #e9ecf2;
+  border-color: rgba(255,255,255,.08);
+}
+
+/* Keep sidebar panel styles consistent across themes */
+.sidebar{ pointer-events:none; }
+.sidebar .sb-inner{ pointer-events:auto; }
 </style></head>
-<body><button class="sb-toggle" id="sidebarToggle">⚙️</button><div class="sidebar" id="sidebar"><div class="sb-inner"><div class="sb-title">설정</div><div class="sb-group" id="sb-controls"><div class="sb-row"><label>버튼 정렬:
+<body class="theme-dark"><div class="sidebar" id="sidebar"><div class="sb-inner"><div class="sb-title">설정</div><div class="sb-group" id="sb-controls"><div class="sb-row"><label>버튼 정렬:
       <select id="alignSelect" style="padding:8px 10px; border-radius:10px; border:1px solid var(--line); background:rgba(240,245,255,.6); color:var(--text)">
 <option value="flex-start">왼쪽</option>
 <option value="center">가운데</option>
@@ -141,7 +216,7 @@ body.theme-light{
 <option value="light">라이트</option>
 </select>
 </label><label style="display:flex; gap:6px; align-items:center"><input checked="" id="fxToggle" type="checkbox"/> 배경 애니메이션</label></div><div class="sb-row"><button class="btn-ghost" id="savePref">적용</button><button class="btn-ghost" id="resetBtn">초기화</button></div></div></div></div>
-<canvas id="fxCanvas"></canvas> <!-- 상단 잔액 바 --> <div class="balance-bar" id="balanceBar">
+<canvas id="fxCanvas"></canvas> <!-- 상단 잔액 바 --> <div class="balance-bar" id="balanceBar"><button class="sb-toggle" id="sidebarToggle">☰</button>
 <div><b>『동동뱃』 v2</b></div>
 <div class="balance-pill">현재 금액: <span id="balanceTop">0</span></div>
 <div class="balance-pill">잭팟: <span id="jackpotTop">₩ 1,200,000</span> (<span id="jackpotP"></span>)</div>
@@ -1277,6 +1352,44 @@ document.addEventListener('visibilitychange', ()=>{ if(document.hidden) FX.stop(
     }catch(e){}
     if(save){
       save.addEventListener('click', function(){ applyBg(); });
+    }
+  });
+})();
+</script><script>
+(function(){
+  function ready(fn){ if(document.readyState!=='loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
+  ready(function(){
+    var body = document.body;
+    // default to dark if nothing set by saved prefs
+    if(!body.classList.contains('theme-dark') && !body.classList.contains('theme-light')){
+      body.classList.add('theme-dark');
+    }
+    // If themeSelect exists, set default to dark in UI (doesn't overwrite saved until user clicks 적용)
+    var themeSel = document.getElementById('themeSelect');
+    if(themeSel){
+      // find option with text "다크" or value "dark"
+      var setIdx = -1;
+      for(var i=0;i<themeSel.options.length;i++){
+        var opt = themeSel.options[i];
+        if((opt.value && /dark|다크/i.test(opt.value)) || /다크|dark/i.test(opt.text)){
+          setIdx = i; break;
+        }
+      }
+      if(setIdx>=0) themeSel.selectedIndex = setIdx;
+    }
+    // Sidebar toggle (button lives inside balance bar now)
+    var sb = document.getElementById('sidebar');
+    var tgl = document.getElementById('sidebarToggle');
+    if(tgl && sb){
+      tgl.addEventListener('click', function(ev){
+        ev.stopPropagation();
+        sb.classList.toggle('open');
+      });
+    }
+    // Ensure header spans full width even on resize
+    var bb = document.getElementById('balanceBar');
+    if(bb){
+      bb.style.width = '100%';
     }
   });
 })();
