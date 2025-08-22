@@ -6,7 +6,7 @@
 <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport"/>
 <meta content="yes" name="apple-mobile-web-app-capable"/>
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
-<title>『동동뱃』 v2</title>
+<title>『동언뱃』 v2</title>
 <style>
   :root{
     --bg:#0a0c13; --panel:#101421; --panel2:#0c111c; --line:#1a2234;
@@ -69,516 +69,91 @@
 
 /* 오버레이(파산/캡차/이벤트/스킬) */ .overlay{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:12000; background:rgba(0,0,0,.55); backdrop-filter: blur(8px); } .overlay.show{ display:flex } .modal{ background:rgba(16,20,33,.7); border:1px solid rgba(255,255,255,.08); padding:16px; border-radius:14px; width:min(92vw,420px); color:var(--text); text-align:center; box-shadow: 0 10px 32px rgba(0,0,0,.35); } .modal h3{ margin:0 0 10px; } .choices{ display:grid; gap:8px; } .tag{ display:inline-block; padding:2px 8px; border-radius:999px; border:1px solid rgba(255,255,255,.15); font-size:12px; color:var(--muted) }
 
-@media (prefers-reduced-motion: reduce){ *{ animation: none !important; transition: none !important } } 
-body.theme-dark{
-  background: linear-gradient(135deg,#000000 0%,#0a0f3c 50%,#001a66 100%) fixed;
-  background-size: 180% 180%;
-}
-body.theme-dark.bg-animated{
-  animation: gradShiftDark 90s ease-in-out infinite alternate;
-}
-@keyframes gradShiftDark{
-  0%{background-position:0% 0%}
-  50%{background-position:100% 100%}
-  100%{background-position:0% 0%}
-}
-
-
-/* === Updated vivid gradient backgrounds & faster animation === */
-body{
-  background: linear-gradient(135deg,
-    #fff171 0%,
-    #ffd35a 18%,
-    #ff9e52 36%,
-    #ff6b6b 54%,
-    #ff3b6e 72%,
-    #ff1f4a 100%
-  ) fixed !important;
-  background-size: 300% 300% !important;
-}
-body.bg-animated{
-  animation: gradShift 22s ease-in-out infinite !important;
-}
-@keyframes gradShift{
-  0%{background-position:0% 50%}
-  25%{background-position:50% 0%}
-  50%{background-position:100% 50%}
-  75%{background-position:50% 100%}
-  100%{background-position:0% 50%}
-}
-
-/* Dark mode gradient (검정~남색 계열) */
-body.theme-dark{
-  background: linear-gradient(135deg,
-    #06070c 0%,
-    #0a0e1a 18%,
-    #0d1631 36%,
-    #0e1f47 54%,
-    #0f2a5f 72%,
-    #123777 100%
-  ) fixed !important;
-  background-size: 320% 320% !important;
-}
-body.theme-dark.bg-animated{
-  animation: gradShiftDark 18s ease-in-out infinite !important;
-}
-@keyframes gradShiftDark{
-  0%{background-position:0% 50%}
-  25%{background-position:50% 0%}
-  50%{background-position:100% 50%}
-  75%{background-position:50% 100%}
-  100%{background-position:0% 50%}
-}
-
-/* Force-hide any old WebGL/overlay remnants */
-/* removed body::before hide */
-#fxCanvas{ display:none !important; }
-
-/* Light mode back-most preview/window boxes should become white */
-.theme-light .theme_preview_window,
-.theme-light .theme_preview_menu,
-.theme-light .theme_preview_header{
-  background-color:#ffffff !important;
-  box-shadow: 0 1px 0 rgba(0,0,0,.05), 0 10px 30px rgba(0,0,0,.08) !important;
-}
-
-/* Top info bar should stick to top and span full width */
-#topInfoBar{
-  position: sticky;
-  top: 0;
-  left: 0; right: 0;
-  z-index: 5500;
-}
-
-/* Sidebar toggle when placed inside the top bar */
-#topInfoBar .sb-toggle{
-  position: relative;
-  left: auto; top: auto;
-  margin-right: 10px;
-}
-
-/* Adjust original floating toggle (fallback) */
-.sb-toggle{
-  border-radius:10px;
-  padding: 8px 12px;
-  font-weight:900;
-}
-</style>
+@media (prefers-reduced-motion: reduce){ *{ animation: none !important; transition: none !important } } </style>
 <style>
-/* === New Background Gradients === */
+/* === Overrides (phase 2) === */
 
-/* Default: Dark mode */
-body{
-  background: linear-gradient(135deg,#000000 0%, #0b0f29 40%, #1a2149 100%) fixed;
-  background-size: 300% 300%;
+/* Sidebar toggle: bottom-right */
+.sb-toggle{
+  left:auto !important; top:auto !important;
+  right: max(12px, env(safe-area-inset-right));
+  bottom: max(12px, env(safe-area-inset-bottom));
 }
-body.bg-animated{
-  animation: gradShift 60s ease-in-out infinite alternate;
-}
-@keyframes gradShift{
+
+/* Faster, denser, more vivid gradients */
+@keyframes gradShiftFast{
   0%{background-position:0% 50%}
+  25%{background-position:50% 0%}
   50%{background-position:100% 50%}
+  75%{background-position:50% 100%}
   100%{background-position:0% 50%}
 }
 
-/* Light mode override */
+/* Dark mode (default): black→navy multi-layer gradient */
+body, body.theme-dark{
+  background:
+    radial-gradient(1200px 800px at 10% 20%, rgba(0,80,255,.22), transparent 60%),
+    radial-gradient(900px 700px at 90% 80%, rgba(0,180,200,.16), transparent 60%),
+    linear-gradient(135deg,#06080E 0%, #0A1020 30%, #0C1C3A 60%, #0A1020 85%, #06080E 100%) fixed;
+  background-size: 300% 300%, 300% 300%, 400% 400%;
+}
+body.bg-animated, body.theme-dark.bg-animated{
+  animation: gradShiftFast 22s ease-in-out infinite;
+}
+
+/* Light mode: vivid yellow→orange→red gradient */
 body.theme-light{
-  background: linear-gradient(135deg,#fff3a1 0%, #ffb86c 40%, #ff6b6b 100%) fixed;
+  background:
+    radial-gradient(1200px 700px at 10% 20%, rgba(255,240,120,.35), transparent 60%),
+    radial-gradient(900px 600px at 90% 80%, rgba(255,120,90,.25), transparent 60%),
+    linear-gradient(135deg,#fff6a0 0%, #ffd37a 25%, #ff9a6b 55%, #ff6b6b 85%) fixed;
+  background-size: 320% 320%, 320% 320%, 420% 420%;
+}
+body.theme-light.bg-animated{
+  animation: gradShiftFast 18s ease-in-out infinite;
 }
 
-/* === Sidebar toggle === */
-.sb-toggle{
-  position: absolute; left: 8px; top: 8px; z-index: 5001;
-  border: none; background: transparent; font-size: 22px;
-  cursor: pointer; color: inherit;
+/* Make cards less opaque so background shows through */
+.card{ background: rgba(16,20,33,.38) !important; }
+.theme-light .card{ background: rgba(255,255,255,.74) !important; border-color: #e7ecf7 !important; }
+
+/* Ensure rear big frame/box adapts to light mode too */
+.slot-frame{
+  background: linear-gradient(180deg, #0d1220, #1b2438) !important;
+}
+.theme-light .slot-frame{
+  background: linear-gradient(180deg, #f7f9ff, #e9eefb) !important;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.04) !important;
+  border: 1px solid #e8eef9 !important;
 }
 
-/* Sidebar inner (same as before, not changing) */
-.sidebar .sb-inner{ transition: transform .22s ease; }
+/* Remove any dark overlay that hides the background */
+body::before{ display:none !important; background:none !important; }
 
-/* === Top bar fix === */
-.top-bar{
-  position: fixed !important;
-  top: 0; left: 0; right: 0;
-  z-index: 4000;
+/* Top balance bar: stick full-bleed to screen edges while preserving look */
+.balance-bar{
+  position: fixed !important; top: 0; left: 0; right: 0;
+  margin: 0 !important; border-radius: 0 !important;
+  padding-left: max(12px, env(safe-area-inset-left));
+  padding-right: max(12px, env(safe-area-inset-right));
 }
+/* Push content below fixed bar */
+.container{ padding-top: 64px; }
 
-/* Make sure main content goes below */
-body{ padding-top: 60px; }
-</style><style>
-/* Light mode card/container background override */
-body.theme-light .card,
-body.theme-light .container,
-body.theme-light .top-bar{
-  background: #ffffff !important;
-  color: #111 !important;
-}
-</style><style>
-/* === Header (balance bar) should stick full-width === */
-#balanceBar.balance-bar{
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  z-index: 6000;
-  width: 100%;
-}
-/* push content below fixed header */
-body { padding-top: 72px; }
-
-/* Place sidebar toggle inside header (left-aligned) */
-#balanceBar .sb-toggle{
-  position: static;
-  margin-right: 8px;
-  border-radius: 10px;
-  padding: 6px 10px;
-}
-/* Integrate look with header */
-#balanceBar .sb-toggle{ background: transparent; border-color: transparent; box-shadow: none; }
-.theme-light #balanceBar .sb-toggle{ background: transparent; border-color: transparent; color: #111; }
-#balanceBar .sb-toggle:active{ transform: translateY(1px); }
-
-/* === Densified gradient & theme-aware background === */
-/* Default to dark scheme gradient */
-body{
-  background-attachment: fixed;
-  background-size: 300% 300%;
-}
-/* Dark: black→navy family with dense stops */
-body.theme-dark{
-  background-image: linear-gradient(135deg,
-    #0b0b12 0%,
-    #0e1220 10%,
-    #0a1733 20%,
-    #0b1c45 30%,
-    #0a1733 40%,
-    #0e1220 55%,
-    #0b0b12 70%,
-    #08101d 85%,
-    #0b0b12 100%);
-}
-/* Light: yellow→orange→red with extra stops to show motion */
-body.theme-light{
-  background-image: linear-gradient(135deg,
-    #fff7b3 0%,
-    #ffe58f 12%,
-    #ffc46e 24%,
-    #ff995f 36%,
-    #ff6b6b 48%,
-    #ff995f 60%,
-    #ffc46e 72%,
-    #ffe58f 86%,
-    #fff7b3 100%);
-}
-/* More visible animation */
-body.bg-animated{
-  animation: gradShift 45s ease-in-out infinite alternate;
-}
-@keyframes gradShift{
-  0%{background-position:0% 50%}
-  50%{background-position:100% 50%}
-  100%{background-position:0% 50%}
-}
-
-/* Remove old fx canvas entirely */
-#fxCanvas{ display:none !important; }
-
-/* Light-mode: ensure "가장 뒤 박스"도 라이트로 */
-.theme-light .container{
-  background: #ffffff;
-  color: #111;
-  border-color: #e6e8ef;
-}
-/* Dark-mode defaults (in case existing styles didn't set) */
-.theme-dark .container{
-  background: rgba(20,22,30,.6);
-  color: #e9ecf2;
-  border-color: rgba(255,255,255,.08);
-}
-
-/* Keep sidebar panel styles consistent across themes */
-.sidebar{ pointer-events:none; }
-.sidebar .sb-inner{ pointer-events:auto; }
-</style><style>
-.theme-light .theme_preview_window{
-  background-color: #ffffff !important;
-}
-</style><style>
-/* === THEME & BACKGROUND === */
-/* Default to dark theme */
-:root{ color-scheme: dark light; }
-body{ 
-  /* dark default */
-  background: linear-gradient(135deg,#050508 0%, #0a0f2a 33%, #0b173a 66%, #0a0f2a 100%) fixed;
-  background-size: 400% 400%;
-  color: var(--text, #e9eef7);
-}
-body.bg-animated{ animation: gradShift 45s ease-in-out infinite alternate; }
-@keyframes gradShift{
-  0%{background-position:0% 50%}
-  50%{background-position:100% 50%}
-  100%{background-position:0% 50%}
-}
-
-/* Light mode background becomes warm yellow→orange→red */
-body.theme-light{
-  background: linear-gradient(135deg,#fff7b3 0%, #ffd38a 20%, #ffb86c 40%, #ff8a6b 60%, #ff6b6b 80%, #ff8a6b 100%) fixed;
-  background-size: 400% 400%;
-}
-/* More visible animation in light too when enabled */
-body.theme-light.bg-animated{ animation: gradShift 45s ease-in-out infinite alternate; }
-
-/* Kill any legacy bg effects */
-/* removed body::before hide */
-#fxCanvas{ display:none !important; }
-
-/* === LIGHT MODE "deep" whites for far-back containers === */
-.theme-light .page, 
-.theme-light .wrapper,
-.theme-light .container,
-.theme-light .content,
-.theme-light .root,
-.theme-light .panel,
-.theme-light .box,
-.theme-light .card {
-  background: #ffffff !important;
-  color: #111 !important;
-}
-
-/* === TOP BAR (balance/jackpot) STICKY & FULL-WIDTH === */
-.balance-bar, #balanceBar, .top-balance, header.balance, .topbar{
-  position: fixed !important;
-  top: 0; left: 0; right: 0;
-  width: 100% !important;
-  z-index: 4000;
-  margin: 0 !important;
-  border-radius: 0 !important;
-}
-/* leave space for it */
-body.has-sticky-balance{ padding-top: 64px; }
-/* ensure backgrounds adapt to theme */
-.balance-bar, #balanceBar, .top-balance, header.balance, .topbar{
-  backdrop-filter: blur(10px) saturate(1.2);
-  background: rgba(10,12,20,.6);
-  border-bottom: 1px solid rgba(255,255,255,.08);
-}
-.theme-light .balance-bar, .theme-light #balanceBar, .theme-light .top-balance, .theme-light header.balance, .theme-light .topbar{
-  background: rgba(255,255,255,.75);
-  border-bottom-color: #e6e9f3;
-  color: #111;
-}
-
-/* === SIDEBAR TOGGLE: HAMBURGER + RELOCATED INSIDE TOP BAR LEFT === */
-.sb-toggle{
-  display:inline-flex; align-items:center; justify-content:center;
-  width: 40px; height: 40px;
-  border-radius: 10px;
-  border: 1px solid rgba(255,255,255,.12);
-  background: rgba(16,20,33,.55);
-  margin: 8px 10px 8px 12px;
-  box-shadow: 0 4px 14px rgba(0,0,0,.18);
-}
-.theme-light .sb-toggle{ background: rgba(0,0,0,0.04); border-color:#e3e7f2; }
-
-/* three bars */
-.sb-toggle .bars{ position: relative; width: 20px; height: 14px; display:block; }
-.sb-toggle .bars, .sb-toggle .bars:before, .sb-toggle .bars:after{
-  content:""; display:block; height:2px; border-radius:2px;
-  background: currentColor;
-  position:absolute; left:0; right:0;
-}
-.sb-toggle .bars{ top: 6px; }
-.sb-toggle .bars:before{ top:-6px; }
-.sb-toggle .bars:after{ top:6px; }
-
-/* === SIDEBAR PANEL remains === */
-.sidebar{ position: fixed; inset:0; z-index: 5000; pointer-events:none; }
-.sidebar .sb-inner{
-  position: fixed; left: 12px; top: 56px; bottom: 12px; width: 300px;
-  transform: translateX(-320px);
-  transition: transform .22s ease;
-  background: rgba(16,20,33,.82); border:1px solid rgba(255,255,255,.08);
-  border-radius: 14px; padding: 14px; pointer-events:auto;
-  backdrop-filter: blur(14px) saturate(1.15);
-  box-shadow: 0 16px 48px rgba(0,0,0,.35);
-  overflow:auto;
-}
-.theme-light .sidebar .sb-inner{ background: rgba(255,255,255,.92); border-color:#e3e7f2; color:#111; }
-.sidebar.open .sb-inner{ transform: translateX(0); }
-
-/* Optional: ensure main content doesn't hide behind sidebar when narrow */
-@media (max-width: 640px){
-  .sidebar .sb-inner{ width: 86vw; }
-}
-</style><style>
-/* === Updated vibrant gradient backgrounds === */
-body{
-  background: linear-gradient(270deg, #ffec61, #ff8a00, #ff003c, #ff8a00, #ffec61);
-  background-size: 600% 600%;
-}
-body.bg-animated{
-  animation: gradShift 20s ease infinite;
-}
-@keyframes gradShift{
-  0%{background-position:0% 50%}
-  50%{background-position:100% 50%}
-  100%{background-position:0% 50%}
-}
-/* Dark theme gradient */
-body.theme-dark{
-  background: linear-gradient(270deg, #000000, #0f2027, #203a43, #2c5364, #000000);
-  background-size: 600% 600%;
-}
-body.theme-dark.bg-animated{
-  animation: gradShiftDark 25s ease infinite;
-}
-@keyframes gradShiftDark{
-  0%{background-position:0% 50%}
-  50%{background-position:100% 50%}
-  100%{background-position:0% 50%}
-}
-
-/* Sidebar toggle styling */
-.sb-toggle{
-  background:none;
-  font-size:22px;
-  border:none;
-  padding:8px 10px;
-  color:var(--text);
-}
-.theme-light .sb-toggle{ color:#111; background:none; border:none; }
-
-/* Sidebar same as before */
-.sidebar{ position:fixed; inset:0; z-index:5000; pointer-events:none;}
-.sidebar .sb-inner{ position:fixed; left:12px; top:56px; bottom:12px; width:300px;
-  transform:translateX(-320px); transition:transform .22s ease;
-  background:rgba(16,20,33,.85); border-radius:14px; padding:14px;
-  pointer-events:auto; overflow:auto; backdrop-filter:blur(14px) saturate(1.15);}
-.sidebar.open .sb-inner{ transform:translateX(0);}
-</style><style>
-.theme-light .card, .theme-light .balance-bar{
-  background: #fff !important;
-  color: #000 !important;
-}
-</style><style>
-.balance-bar.fullwidth{
-  position:fixed; top:0; left:0; right:0; width:100%;
-  z-index:4000;
-}
-body{ padding-top:60px; } /* push down body content */
-</style><style>
-.theme-light [data-surface="back"]{
-  background-color:#ffffff !important;
-  color:#111 !important;
-  border-color:#e7eaf3 !important;
-}
-</style><style>
-/* Guarantee gradient visible on root */
-html, body { min-height: 100%; }
-html{ background: inherit !important; }
-</style><style>
-/* --- Enhanced multi-layer gradient background --- */
-:root{
-  --grad-speed: 16s;
-}
-/* Use multiple layers for richer motion and density */
-body{
-  background-attachment: fixed;
-  /* placeholder, actual stack set per theme */
-}
-/* LIGHT THEME vivid yellow→orange→red */
-.theme-light{
-  --bg-stack:
-    radial-gradient(120% 160% at 0% 0%, rgba(255,247,158,0.85) 0%, rgba(255,217,102,0.65) 35%, rgba(255,217,102,0.0) 60%),
-    radial-gradient(150% 140% at 100% 100%, rgba(255,107,107,0.85) 0%, rgba(255,77,109,0.55) 40%, rgba(255,77,109,0.0) 70%),
-    linear-gradient(120deg, #fff59d 0%, #ffd166 22%, #ff9f6e 45%, #ff6b6b 68%, #ff1e56 100%);
-  --bg-size: 260% 260%, 320% 320%, 260% 260%;
-}
-/* DARK THEME black→navy family */
-.theme-dark{
-  --bg-stack:
-    radial-gradient(130% 170% at 0% 0%, rgba(0,10,20,0.92) 0%, rgba(5,19,38,0.85) 35%, rgba(10,30,60,0.0) 65%),
-    radial-gradient(150% 140% at 100% 100%, rgba(10,46,94,0.80) 0%, rgba(12,58,120,0.55) 40%, rgba(12,58,120,0.0) 70%),
-    linear-gradient(120deg, #020409 0%, #0a1326 25%, #0e2146 50%, #0a2a5e 75%, #050d1a 100%);
-  --bg-size: 300% 300%, 320% 320%, 300% 300%;
-}
-/* Apply stack */
-body{
-  background-image: var(--bg-stack);
-  background-size: var(--bg-size);
-  background-position: 0% 50%, 100% 50%, 0% 50%;
-}
-@keyframes gradDrift{
-  0%   { background-position: 0% 50%,   100% 50%,  0% 50%; }
-  50%  { background-position: 100% 50%, 0% 50%,   100% 50%; }
-  100% { background-position: 0% 50%,   100% 50%, 0% 50%; }
-}
-body.bg-animated{
-  animation: gradDrift var(--grad-speed) ease-in-out infinite;
-}
-
-/* --- Balance bar fullwidth & layout fixes --- */
-.balance-bar.fullwidth{
-  position: fixed; top: 0; left: 0; right: 0; width: 100vw; margin: 0;
-  display: flex; align-items: center; gap: 10px; padding: 10px 14px;
-  box-sizing: border-box;
-  background: var(--panel);
-  border-bottom: 1px solid var(--line);
-  z-index: 4000;
-}
-/* Ensure body content not hidden under sticky bar */
-body.has-sticky-balance{ padding-top: 56px; }
-
-/* Sidebar toggle as hamburger */
-.sb-toggle{
-  display:inline-flex; align-items:center; justify-content:center;
-  width: 36px; height: 36px; padding: 0; border-radius: 8px;
-  border: 1px solid var(--line);
-  background: var(--panel2);
-  cursor: pointer;
-}
-.sb-toggle .hamb i{
-  display:block; width: 18px; height: 2px; border-radius: 2px;
-  background: var(--text);
-  margin: 3px 0;
-}
-.theme-light .sb-toggle .hamb i{ background: #111; }
-
-/* Top bar children layout tweaks */
-.balance-bar > div, .balance-bar > span { display:flex; align-items:center; }
-.balance-pill{ background: var(--panel2); border: 1px solid var(--line); border-radius: 999px; padding: 6px 10px; }
-
-/* Make outermost container react to theme for "back box" */
-.container[data-surface="back"]{
-  background-color: var(--bg);
-}
-.theme-light .container[data-surface="back"]{
-  background-color: #ffffff;
-}
-
-/* Hide old WebGL canvas explicitly */
-#fxCanvas{ display: none !important; }
+/* Sidebar panel stays left; just the toggle moved */
+.sidebar .sb-inner{ left: 12px !important; right: auto; }
 </style></head>
-<body class="theme-dark has-sticky-balance"><div class="sidebar" id="sidebar"><div class="sb-inner"><div class="sb-title">설정</div><div class="sb-group" id="sb-controls"><div class="sb-row"><label>버튼 정렬:
-      <select id="alignSelect" style="padding:8px 10px; border-radius:10px; border:1px solid var(--line); background:rgba(240,245,255,.6); color:var(--text)">
-<option value="flex-start">왼쪽</option>
-<option value="center">가운데</option>
-<option value="flex-end">오른쪽</option>
-</select>
-</label><label style="margin-left:10px">테마:
-      <select id="themeSelect" style="padding:8px 10px; border-radius:10px; border:1px solid var(--line); background:rgba(240,245,255,.6); color:var(--text)">
-<option selected="selected" value="dark">다크</option>
-<option value="light">라이트</option>
-</select>
-</label><label style="display:flex; gap:6px; align-items:center"><input checked="" id="fxToggle" type="checkbox"/> 배경 애니메이션</label></div><div class="sb-row"><button class="btn-ghost" id="savePref">적용</button><button class="btn-ghost" id="resetBtn">초기화</button></div></div></div></div>
-<canvas id="fxCanvas"></canvas> <!-- 상단 잔액 바 --> <div class="balance-bar fullwidth" id="topInfoBar" style="position:fixed; top:0; left:0; right:0; width:100%; z-index:4000;"><button aria-label="사이드바 열기" class="sb-toggle" id="sidebarToggle"><span aria-hidden="true" class="hamb"><i></i><i></i><i></i></span></button>
-<div><b>『동동뱃』 v2</b></div>
+<body class="theme-dark"><button class="sb-toggle" id="sidebarToggle">☰</button>
+<canvas id="fxCanvas"></canvas> <!-- 상단 잔액 바 --> <div class="balance-bar" id="balanceBar">
+<div><b>『동언뱃』 v2</b></div>
 <div class="balance-pill">현재 금액: <span id="balanceTop">0</span></div>
 <div class="balance-pill">잭팟: <span id="jackpotTop">₩ 1,200,000</span> (<span id="jackpotP"></span>)</div>
 <div class="balance-pill">대출 한도: <span id="loanCapTop">0</span></div>
-</div> <div class="container" data-surface="back">
+</div> <div class="container">
 <!-- 헤더 -->
 <section class="card">
 <div class="title">
-<h1>『동동뱃』</h1>
+<h1>『동언뱃』</h1>
 <div class="sub">서버 상태: 정상 · 현재 기본 승률: <b id="p-global">47%</b> · 난이도 스케일: <b id="diff">1.00x</b></div>
 </div>
 <div class="jackpot">
@@ -595,10 +170,24 @@ body.has-sticky-balance{ padding-top: 56px; }
 <!-- 설정/업그레이드/금융 -->
 <section class="card">
 <div class="title"><h2>환경설정</h2><div class="sub">정렬/테마/효과/업그레이드/대출 정책 저장 (글래스 UI)</div></div>
-<div class="btn-row" style="display:none">
+<div class="btn-row" style="gap:12px; align-items:center">
+<label>버튼 정렬:
+      <select id="alignSelect" style="padding:8px 10px; border-radius:10px; border:1px solid var(--line); background:rgba(240,245,255,.6); color:var(--text)">
+<option value="flex-start">왼쪽</option>
+<option value="center">가운데</option>
+<option value="flex-end">오른쪽</option>
+</select>
+</label>
+<label style="margin-left:10px">테마:
+      <select id="themeSelect" style="padding:8px 10px; border-radius:10px; border:1px solid var(--line); background:rgba(240,245,255,.6); color:var(--text)">
+<option value="dark">다크</option>
+<option value="light">라이트</option>
+</select>
+</label>
 <label style="margin-left:10px; display:flex; gap:6px; align-items:center">
- 배경 WebGL 효과
+<input checked="" id="fxToggle" type="checkbox"/> 배경 WebGL 효과
     </label>
+<button class="btn-ghost" id="savePref">적용</button>
 </div>
 <div class="btn-row" style="gap:12px; margin-top:10px; flex-wrap:wrap">
 <button class="btn-rand" id="upgradeWinBtn">승률 업그레이드</button>
@@ -725,39 +314,7 @@ body.has-sticky-balance{ padding-top: 56px; }
 <button class="btn-odd" disabled="" id="resetDo">완전 초기화</button>
 </div>
 <div class="hint" id="resetCooldownHint" style="display:none"></div>
-</div> <!-- 파산 오버레이 --> <div aria-modal="true" class="overlay" id="bankruptOverlay" role="dialog">
-<div class="modal">
-<h3>파산했습니다 💥</h3>
-<p>화면을 잠시 어둡게 했습니다. 다시 시작하시겠습니까?</p>
-<div style="display:flex; gap:8px; justify-content:center; margin-top:8px">
-<button class="btn-ghost" id="bkCancel">아니오</button>
-<button class="btn-rand" id="bkRestart">다시 시작</button>
-</div>
-</div>
-</div> <!-- 캡차 오버레이 --> <div aria-modal="true" class="overlay" id="captchaOverlay" role="dialog">
-<div class="modal">
-<h3>잠깐! 사람인지 확인 👀</h3>
-<p id="captchaQ">7 + 5 = ?</p>
-<input id="captchaA" placeholder="정답" style="width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--line); background:rgba(240,245,255,.85); color:#111"/>
-<div style="display:flex; gap:8px; justify-content:center; margin-top:8px">
-<button class="btn-ghost" id="captchaCancel">취소</button>
-<button class="btn-rand" id="captchaOk">확인</button>
-</div>
-<div class="hint">잭팟/역잭팟 이후 일정 시간 입력이 잠시 비활성화 됩니다.</div>
-</div>
-</div> <!-- 이벤트 오버레이 --> <div aria-modal="true" class="overlay" id="eventOverlay" role="dialog">
-<div class="modal">
-<h3>행운의 카드 ✨</h3>
-<p class="muted">랜덤 버프/디버프가 발생합니다.</p>
-<div class="choices" id="eventChoices"></div>
-</div>
-</div> <!-- 스킬카드 오버레이 --> <div aria-modal="true" class="overlay" id="skillOverlay" role="dialog">
-<div class="modal">
-<h3>스킬카드 선택 🃏</h3>
-<p class="muted">100회 시도마다 1개 선택</p>
-<div class="choices" id="skillChoices"></div>
-</div>
-</div><script>
+</div> <!-- 파산 오버레이 --> <!-- 캡차 오버레이 --> <!-- 이벤트 오버레이 --> <!-- 스킬카드 오버레이 --> <script>
 (function(){ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded', init);} else {init();} })();
 
 function init(){
@@ -1168,7 +725,7 @@ const FX = (function(){
 })();
 
 /* ===== 안내(토스트 대체) ===== */
-(function(){ const msgs=["환영합니다! 동동뱃 v2.","게임은 재미로만! 과몰입 금지."]; let i=0; const div=document.createElement('div'); div.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:20000;background:rgba(16,20,33,.8);backdrop-filter:blur(10px);padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.08);font-weight:800'; document.body.appendChild(div); function next(){ if(i>=msgs.length){div.remove(); return;} div.textContent=msgs[i++]; setTimeout(next,1200);} next(); })();
+(function(){ const msgs=["환영합니다! 동언뱃 v2.","게임은 재미로만! 과몰입 금지."]; let i=0; const div=document.createElement('div'); div.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:20000;background:rgba(16,20,33,.8);backdrop-filter:blur(10px);padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.08);font-weight:800'; document.body.appendChild(div); function next(){ if(i>=msgs.length){div.remove(); return;} div.textContent=msgs[i++]; setTimeout(next,1200);} next(); })();
 
 /* ===== 잭팟 증액(느리게, 성장 계수 적용) ===== */
 (function incJP(){
@@ -1683,88 +1240,31 @@ document.addEventListener('visibilitychange', ()=>{ if(document.hidden) FX.stop(
 
 }
 </script>
+<button class="btn-ghost" id="resetBtn">초기화</button>
 <script>
 (function(){
-  function ready(fn){ if(document.readyState!=='loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
+  function ready(fn){ if(document.readyState!='loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
   ready(function(){
-    var sb = document.getElementById('sidebar');
-    var tgl = document.getElementById('sidebarToggle');
-    if(tgl && sb){
-      tgl.addEventListener('click', function(){ sb.classList.toggle('open'); });
-    }
-    // Background animation default: turn on unless explicitly disabled
-    var fx = document.getElementById('fxToggle');
-    function ensureAnimDefault(){
-      try{
-        var stored = localStorage.getItem('FX') || localStorage.getItem('fx') || "";
-        var disabled = (stored && (stored==="0" || stored==="false"));
-        if(fx){
-          if(!disabled){ fx.checked = true; }
-          document.body.classList.toggle('bg-animated', !!fx.checked);
-          fx.addEventListener('change', function(){
-            document.body.classList.toggle('bg-animated', !!fx.checked);
-          });
-        }else{
-          // No toggle present: force animation on
-          document.body.classList.add('bg-animated');
-        }
-      }catch(e){
-        document.body.classList.add('bg-animated');
+    try{
+      var body = document.body;
+      var sel = document.getElementById('themeSelect');
+      if(body && !body.classList.contains('theme-dark')){
+        body.classList.remove('theme-light');
+        body.classList.add('theme-dark');
       }
-    }
-    ensureAnimDefault();
-  });
-})();
-</script><script>
-(function(){
-  function ready(fn){ if(document.readyState!=='loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
-  ready(function(){
-    var body = document.body;
-    // default to dark if nothing set by saved prefs
-    if(!body.classList.contains('theme-dark') && !body.classList.contains('theme-light')){
-      body.classList.add('theme-dark');
-    }
-    // If themeSelect exists, set default to dark in UI (doesn't overwrite saved until user clicks 적용)
-    var themeSel = document.getElementById('themeSelect');
-    if(themeSel){
-      // find option with text "다크" or value "dark"
-      var setIdx = -1;
-      for(var i=0;i<themeSel.options.length;i++){
-        var opt = themeSel.options[i];
-        if((opt.value && /dark|다크/i.test(opt.value)) || /다크|dark/i.test(opt.text)){
-          setIdx = i; break;
-        }
+      if(sel){
+        // Set select to '다크' if not already
+        var opt = Array.from(sel.options).find(o=>/다크/.test(o.textContent));
+        if(opt){ sel.value = opt.value; }
       }
-      if(setIdx>=0) themeSel.selectedIndex = setIdx;
-    }
-    // Sidebar toggle (button lives inside balance bar now)
-    var sb = document.getElementById('sidebar');
-    var tgl = document.getElementById('sidebarToggle');
-    if(tgl && sb){
-      tgl.addEventListener('click', function(ev){
-        ev.stopPropagation();
-        sb.classList.toggle('open');
-      });
-    }
-    // Ensure header spans full width even on resize
-    var bb = document.getElementById('balanceBar');
-    if(bb){
-      bb.style.width = '100%';
-    }
-  });
-})();
-</script><script>
-(function(){
-  function ready(fn){ if(document.readyState!=='loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
-  ready(function(){
-    // Ensure sticky padding
-    document.body.classList.add('has-sticky-balance');
-    // If topbar wasn't present at parse time, move toggle when it appears
-    var tb = document.querySelector('#balanceBar, .balance-bar, .top-balance, header.balance, .topbar');
-    var tgl = document.getElementById('sidebarToggle');
-    if(tb && tgl && tgl.parentElement !== tb){
-      tb.insertBefore(tgl, tb.firstChild);
-    }
+      // Ensure background animation reflects current toggle
+      var fx = document.getElementById('fxToggle');
+      if(fx){
+        var apply = ()=> body.classList.toggle('bg-animated', !!fx.checked);
+        apply();
+        fx.addEventListener('change', apply);
+      }
+    }catch(e){}
   });
 })();
 </script></body>
