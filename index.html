@@ -1,10 +1,12 @@
-<!DOCTYPE html><html lang="ko">
+<!DOCTYPE html>
+
+<html lang="ko">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<title>『동언뱃』 v2</title>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport"/>
+<meta content="yes" name="apple-mobile-web-app-capable"/>
+<meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
+<title>『동동뱃』 v2</title>
 <style>
   :root{
     --bg:#0a0c13; --panel:#101421; --panel2:#0c111c; --line:#1a2234;
@@ -68,404 +70,266 @@
 /* 오버레이(파산/캡차/이벤트/스킬) */ .overlay{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:12000; background:rgba(0,0,0,.55); backdrop-filter: blur(8px); } .overlay.show{ display:flex } .modal{ background:rgba(16,20,33,.7); border:1px solid rgba(255,255,255,.08); padding:16px; border-radius:14px; width:min(92vw,420px); color:var(--text); text-align:center; box-shadow: 0 10px 32px rgba(0,0,0,.35); } .modal h3{ margin:0 0 10px; } .choices{ display:grid; gap:8px; } .tag{ display:inline-block; padding:2px 8px; border-radius:999px; border:1px solid rgba(255,255,255,.15); font-size:12px; color:var(--muted) }
 
 @media (prefers-reduced-motion: reduce){ *{ animation: none !important; transition: none !important } } </style>
-
-
-<style id="casino-glass-overrides">
-/* === Casino (Gold/Crimson) background & flatter liquid-glass surfaces === */
-
-/* Trendy wavy gradient: layered animated gradients in gold & red */
-:root{
-  /* Glass tokens (light default) */
-  --glass-bg: rgba(255,255,255,.12);
-  --glass-stroke: rgba(255,255,255,.20);
-  --glass-inner: rgba(255,255,255,.10);
-  --glass-shadow: rgba(0,0,0,.28);
-  --blur: 8px;           /* reduced blur */
-  --saturate: 1.3;       /* slightly toned down */
-  --corner: 12px;
-  --fg: #f5f6f8;
-  --subtle: rgba(255,255,255,.55);
-  --brand-gold: #ffd36b;
-  --brand-amber: #ffb347;
-  --brand-crimson: #c91f28;
-  --brand-deep: #3a0808;
-}
-
-@media (prefers-color-scheme: dark){
-  :root{
-    /* Dark-adaptive glass: darker base, stronger stroke for contrast */
-    --glass-bg: rgba(15,15,18,.42);      /* less transparent = darker */
-    --glass-stroke: rgba(255,255,255,.12);
-    --glass-inner: rgba(255,255,255,.06);
-    --glass-shadow: rgba(0,0,0,.45);
-    --blur: 7px;
-    --saturate: 1.25;
-    --fg: #e9eaee;
-    --subtle: rgba(255,255,255,.5);
-  }
-}
-
-/* Base background: deep burgundy */
+<style>
+/* === New slow yellow↔red gradient background & overrides === */
 body{
-  background: radial-gradient(1200px 800px at 12% 18%, var(--brand-deep) 0%, #120505 52%, #090404 100%) !important;
-  color: var(--fg);
+  background: linear-gradient(135deg,#fff3a1 0%, #ffb86c 40%, #ff6b6b 100%) fixed;
+  background-size: 180% 180%;
 }
-
-/* Animated "wavy" gold+red gradient layers (no blue) */
-body::before{
-  content:"";
-  position:fixed; inset:0; z-index:0; pointer-events:none;
-  background:
-    radial-gradient(1200px 900px at 10% 15%, rgba(255, 190, 70, .34), transparent 65%),
-    radial-gradient(1000px 800px at 85% 20%, rgba(201, 31, 40, .28), transparent 62%),
-    conic-gradient(from 210deg at 30% 70%, rgba(255, 230, 140, .15), rgba(255, 105, 70, .12), rgba(201,31,40,.10), rgba(255, 230, 140, .15));
-  mix-blend-mode: screen;
-  filter: saturate(1.15) contrast(1.06);
-  animation: waveShift 22s ease-in-out infinite alternate;
+body.bg-animated{
+  animation: gradShift 90s ease-in-out infinite alternate;
 }
-/* soft noise overlay */
-body::after{
-  content:"";
-  position:fixed; inset:0; z-index:0; pointer-events:none;
-  background-image: radial-gradient(circle at 50% 50%, rgba(255,255,255,.1) 0 1px, transparent 1.2px);
-  background-size: 3px 3px;
-  opacity:.05;
-  mix-blend-mode: overlay;
+@keyframes gradShift{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
 }
+/* Disable old overlays / WebGL canvas visuals */
+body::before{ display:none !important; }
+#fxCanvas{ display:none !important; }
 
-@keyframes waveShift{
-  0%   { transform: translate3d(0,0,0) scale(1) }
-  100% { transform: translate3d(-2.5%, -1.5%, 0) scale(1.05) }
-}
-
-/* === Flatter, darker (in dark mode) liquid-glass surfaces === */
-.casino-glass,
-.card,.item,.balance-bar,.row,.display,.slot-frame,
-#resetConfirm,.modal,.stat,.reel{
-  background: var(--glass-bg) !important;
-  border: 1px solid var(--glass-stroke) !important;
-  border-radius: var(--corner);
-  backdrop-filter: blur(var(--blur)) saturate(var(--saturate));
-  -webkit-backdrop-filter: blur(var(--blur)) saturate(var(--saturate));
-  /* Flattened shadow */
-  box-shadow: 0 8px 20px var(--glass-shadow) !important;
-  position: relative;
-}
-
-/* Soften/flatten specular highlight */
-.card::before,.item::before,.balance-bar::before,.row::before,
-.display::before,.slot-frame::before,#resetConfirm::before,.modal::before{
-  content:""; position:absolute; inset:0; pointer-events:none; border-radius:inherit;
-  background: linear-gradient(to bottom, rgba(255,255,255,.22), transparent 38%);
-  opacity:.7;  /* lower highlight for flatter look */
-}
-
-/* Inputs also glassy but flatter */
-input, select{
-  background: rgba(255,255,255,.16) !important;
-  color: var(--fg);
-  border: 1px solid var(--glass-stroke) !important;
-  backdrop-filter: blur(calc(var(--blur) - 2px)) saturate(1.2);
-  -webkit-backdrop-filter: blur(calc(var(--blur) - 2px)) saturate(1.2);
-}
-
-/* Primary buttons tuned for the palette (kept, but not eye-searing) */
-.btn-odd{ background: linear-gradient(180deg,#ff5e6e,#9f2330) !important; border-color:#651827 !important }
-.btn-even{ background: linear-gradient(180deg,#18c996,#0d6a50) !important; border-color:#094b38 !important }
-.btn-rand{ background: linear-gradient(180deg,#ffc349,#b97a14) !important; border-color:#764e0f !important }
-
-/* Slot reels subtle shine */
-.reel{
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.14), 0 6px 18px rgba(0,0,0,.3) !important;
-}
-.sym-7{ color:#ff4040 !important; text-shadow: 0 0 6px rgba(255,64,64,.55) !important }
-
-/* Chart frame stays subtle */
-#balanceChart{
-  background: rgba(255,255,255,.06) !important;
-  border: 1px solid var(--glass-stroke) !important;
-  border-radius: 12px !important;
-  box-shadow: 0 8px 18px var(--glass-shadow) !important;
+/* Keep same background for light theme, don't override */
+body.theme-light{
+  background: linear-gradient(135deg,#fff3a1 0%, #ffb86c 40%, #ff6b6b 100%) fixed;
 }
 
 /* === Collapsible sidebar === */
-#sideToggle{
-  position: fixed; left: 12px; top: 14px; z-index:1001;
-  width: 38px; height: 38px; border-radius: 10px;
-  background: rgba(0,0,0,.5);
-  color: #fff; display:flex; align-items:center; justify-content:center;
-  border: 1px solid rgba(255,255,255,.15);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  cursor: pointer;
-  user-select:none;
+.sb-toggle{
+  position: fixed; left: 12px; top: 12px; z-index: 5001;
+  border:1px solid rgba(255,255,255,.12); border-radius:10px;
+  background: rgba(16,20,33,.75); backdrop-filter: blur(10px) saturate(1.15);
+  padding: 8px 10px; font-weight:900; color: var(--text); cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0,0,0,.28);
 }
-#sidebar{
-  position: fixed; left: 12px; top: 60px; bottom: 12px; width: 280px; z-index:1000;
-  transform: translateX(-310px);
-  transition: transform .25s ease;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-stroke);
-  border-radius: 14px;
-  box-shadow: 0 14px 38px var(--glass-shadow);
-  backdrop-filter: blur(var(--blur)) saturate(var(--saturate));
-  -webkit-backdrop-filter: blur(var(--blur)) saturate(var(--saturate));
-  padding: 12px;
-  display:flex; flex-direction:column; gap:10px;
+.theme-light .sb-toggle{ background: rgba(255,255,255,.75); border-color:#e3e7f2; color:#111; }
+
+.sidebar{
+  position: fixed; inset: 0 0 0 0; z-index: 5000; pointer-events: none;
 }
-#sidebar.open{ transform: translateX(0) }
-#sidebar h4{ margin: 4px 2px 6px; font-size: 14px; font-weight: 700; opacity:.9 }
-#sidebar .group{ display:flex; flex-direction:column; gap:6px }
-#sidebar .row{ display:flex; gap:6px; flex-wrap:wrap }
-#sidebar button, #sidebar .toggle{
-  border-radius: 10px; padding: 8px 10px; border:1px solid var(--glass-stroke);
-  background: rgba(255,255,255,.14);
-  color: var(--fg); cursor:pointer;
+.sidebar .sb-inner{
+  position: fixed; left: 12px; top: 56px; bottom: 12px; width: 300px;
+  transform: translateX(-320px);
+  transition: transform .22s ease;
+  background: rgba(16,20,33,.75); border:1px solid rgba(255,255,255,.08);
+  border-radius: 14px; padding: 14px;
+  backdrop-filter: blur(14px) saturate(1.15);
+  box-shadow: 0 16px 48px rgba(0,0,0,.35);
+  overflow: auto;
+  pointer-events: auto;
 }
-#sidebar .sub{ font-size: 12px; opacity:.7 }
-</style>
+.theme-light .sidebar .sb-inner{ background: rgba(255,255,255,.82); border-color:#e3e7f2; }
+.sidebar.open .sb-inner{ transform: translateX(0); }
 
-</head>
-<body>
-
-<!-- Collapsible Sidebar for Controls -->
-<div id="sideToggle" title="열기/닫기">≡</div>
-<aside id="sidebar" aria-label="Controls Sidebar">
-  <h4>빠른 설정</h4>
-  <div class="group">
-    <div class="row" id="sidebarRow1"></div>
-    <div class="row" id="sidebarRow2"></div>
-    <div class="row" id="sidebarRow3"></div>
-    <span class="sub">버튼 정렬, 테마 변경, WebGL 효과, 초기화 버튼이 여기로 이동됩니다.</span>
-  </div>
-</aside>
-
-  <canvas id="fxCanvas"></canvas>  <!-- 상단 잔액 바 -->  <div id="balanceBar" class="balance-bar">
-    <div><b>『동언뱃』 v2</b></div>
-    <div class="balance-pill">현재 금액: <span id="balanceTop">0</span></div>
-    <div class="balance-pill">잭팟: <span id="jackpotTop">₩ 1,200,000</span> (<span id="jackpotP"></span>)</div>
-    <div class="balance-pill">대출 한도: <span id="loanCapTop">0</span></div>
-  </div>  <div class="container">
-    <!-- 헤더 -->
-    <section class="card">
-      <div class="title">
-        <h1>『동언뱃』</h1>
-        <div class="sub">서버 상태: 정상 · 현재 기본 승률: <b id="p-global">47%</b> · 난이도 스케일: <b id="diff">1.00x</b></div>
-      </div>
-      <div class="jackpot">
-        <div>JACKPOT <span class="num" id="jackpot">₩ 1,200,000</span></div>
-        <div class="sub">확률: <b id="jackpotP2"></b> / 플레이</div>
-      </div><div class="stat-row" style="margin-top:8px">
-    <div class="stat">승리: <b id="wins">0</b></div>
-    <div class="stat">패배: <b id="losses">0</b></div>
-    <div class="stat">최대 보유금: <b id="peak">0</b></div>
-    <div class="stat">역대 최소금: <b id="minbal">0</b></div>
-    <div class="stat">업적: <b id="ach">0</b></div>
-  </div>
+.sb-title{ display:flex; align-items:center; justify-content:space-between; font-weight:900; margin-bottom:10px; }
+.sb-group{ display:grid; gap:10px; }
+.sb-row{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.sb-row label{ font-size: 13px; color: var(--muted); }
+.sb-row select{ padding:8px 10px; border-radius:10px; border:1px solid var(--line); background:rgba(240,245,255,.6); color:var(--text); }
+.theme-light .sb-row select{ background:rgba(255,255,255,.7); color:#111; }
+.sidebar .btn-row{ gap:8px; }
+.sidebar #resetBtn{ position: static !important; right:auto; bottom:auto; width: 100%; }
+</style></head>
+<body><button class="sb-toggle" id="sidebarToggle">⚙️</button><div class="sidebar" id="sidebar"><div class="sb-inner"><div class="sb-title">설정</div><div class="sb-group" id="sb-controls"><div class="sb-row"><label>버튼 정렬:
+      <select id="alignSelect" style="padding:8px 10px; border-radius:10px; border:1px solid var(--line); background:rgba(240,245,255,.6); color:var(--text)">
+<option value="flex-start">왼쪽</option>
+<option value="center">가운데</option>
+<option value="flex-end">오른쪽</option>
+</select>
+</label><label style="margin-left:10px">테마:
+      <select id="themeSelect" style="padding:8px 10px; border-radius:10px; border:1px solid var(--line); background:rgba(240,245,255,.6); color:var(--text)">
+<option value="dark">다크</option>
+<option value="light">라이트</option>
+</select>
+</label><label style="display:flex; gap:6px; align-items:center"><input checked="" id="fxToggle" type="checkbox"/> 배경 애니메이션</label></div><div class="sb-row"><button class="btn-ghost" id="savePref">적용</button><button class="btn-ghost" id="resetBtn">초기화</button></div></div></div></div>
+<canvas id="fxCanvas"></canvas> <!-- 상단 잔액 바 --> <div class="balance-bar" id="balanceBar">
+<div><b>『동동뱃』 v2</b></div>
+<div class="balance-pill">현재 금액: <span id="balanceTop">0</span></div>
+<div class="balance-pill">잭팟: <span id="jackpotTop">₩ 1,200,000</span> (<span id="jackpotP"></span>)</div>
+<div class="balance-pill">대출 한도: <span id="loanCapTop">0</span></div>
+</div> <div class="container">
+<!-- 헤더 -->
+<section class="card">
+<div class="title">
+<h1>『동동뱃』</h1>
+<div class="sub">서버 상태: 정상 · 현재 기본 승률: <b id="p-global">47%</b> · 난이도 스케일: <b id="diff">1.00x</b></div>
+</div>
+<div class="jackpot">
+<div>JACKPOT <span class="num" id="jackpot">₩ 1,200,000</span></div>
+<div class="sub">확률: <b id="jackpotP2"></b> / 플레이</div>
+</div><div class="stat-row" style="margin-top:8px">
+<div class="stat">승리: <b id="wins">0</b></div>
+<div class="stat">패배: <b id="losses">0</b></div>
+<div class="stat">최대 보유금: <b id="peak">0</b></div>
+<div class="stat">역대 최소금: <b id="minbal">0</b></div>
+<div class="stat">업적: <b id="ach">0</b></div>
+</div>
 </section>
-
 <!-- 설정/업그레이드/금융 -->
 <section class="card">
-  <div class="title"><h2>환경설정</h2><div class="sub">정렬/테마/효과/업그레이드/대출 정책 저장 (글래스 UI)</div></div>
-  <div class="btn-row" style="gap:12px; align-items:center">
-    <label>버튼 정렬:
-      <select id="alignSelect" style="padding:8px 10px; border-radius:10px; border:1px solid var(--line); background:rgba(240,245,255,.6); color:var(--text)">
-        <option value="flex-start">왼쪽</option>
-        <option value="center">가운데</option>
-        <option value="flex-end">오른쪽</option>
-      </select>
+<div class="title"><h2>환경설정</h2><div class="sub">정렬/테마/효과/업그레이드/대출 정책 저장 (글래스 UI)</div></div>
+<div class="btn-row" style="display:none">
+<label style="margin-left:10px; display:flex; gap:6px; align-items:center">
+ 배경 WebGL 효과
     </label>
-    <label style="margin-left:10px">테마:
-      <select id="themeSelect" style="padding:8px 10px; border-radius:10px; border:1px solid var(--line); background:rgba(240,245,255,.6); color:var(--text)">
-        <option value="dark">다크</option>
-        <option value="light">라이트</option>
-      </select>
-    </label>
-    <label style="margin-left:10px; display:flex; gap:6px; align-items:center">
-      <input id="fxToggle" type="checkbox" checked> 배경 WebGL 효과
-    </label>
-    <button class="btn-ghost" id="savePref">적용</button>
-  </div>
-
-  <div class="btn-row" style="gap:12px; margin-top:10px; flex-wrap:wrap">
-    <button class="btn-rand" id="upgradeWinBtn">승률 업그레이드</button>
-    <button class="btn-rand" id="upgradeJpBtn">잭팟 확률 업그레이드</button>
-    <button class="btn-ghost" id="boostJpMode">잭팟 모드(10초)</button>
-    <div class="stat">보너스: <b id="bonusPct">+0%</b></div>
-    <div class="stat">JP 보너스: <b id="bonusJp">+0.00%</b></div>
-    <div class="stat">다음 비용: <b id="nextCost">₩ 100,000</b></div>
-  </div>
-
-  <div class="btn-row" style="gap:12px; margin-top:10px; flex-wrap:wrap">
-    <div class="stat">대출 잔액: <b id="loanOut">₩ 0</b></div>
-    <div class="stat">현재 이자(초당): <b id="loanRate">₩ 0</b></div>
-    <div class="stat">최대 대출 한도: <b id="loanCap">₩ 0</b></div>
-  </div>
-  <div class="btn-row" style="gap:8px; margin-top:8px">
-    <input id="loanAmt" type="number" placeholder="금액(원)" min="0" step="1000" style="flex:1; min-width:120px; border-radius:10px; border:1px solid var(--line); background:rgba(240,245,255,.8); color:#111; padding:8px 10px">
-    <button class="btn-odd" id="borrowBtn">돈 빌리기</button>
-    <button class="btn-even" id="repayBtn">돈 갚기</button>
-  </div>
-
-  <div class="btn-row" style="gap:8px; margin-top:10px">
-    <label>베팅 금액: <input id="betInput" type="number" min="100" step="100" value="1000" style="width:140px; border-radius:10px; padding:8px 10px; border:1px solid var(--line); background:rgba(240,245,255,.8); color:#111"></label>
-    <span class="sub">(직접 조절 가능)</span>
-  </div>
+</div>
+<div class="btn-row" style="gap:12px; margin-top:10px; flex-wrap:wrap">
+<button class="btn-rand" id="upgradeWinBtn">승률 업그레이드</button>
+<button class="btn-rand" id="upgradeJpBtn">잭팟 확률 업그레이드</button>
+<button class="btn-ghost" id="boostJpMode">잭팟 모드(10초)</button>
+<div class="stat">보너스: <b id="bonusPct">+0%</b></div>
+<div class="stat">JP 보너스: <b id="bonusJp">+0.00%</b></div>
+<div class="stat">다음 비용: <b id="nextCost">₩ 100,000</b></div>
+</div>
+<div class="btn-row" style="gap:12px; margin-top:10px; flex-wrap:wrap">
+<div class="stat">대출 잔액: <b id="loanOut">₩ 0</b></div>
+<div class="stat">현재 이자(초당): <b id="loanRate">₩ 0</b></div>
+<div class="stat">최대 대출 한도: <b id="loanCap">₩ 0</b></div>
+</div>
+<div class="btn-row" style="gap:8px; margin-top:8px">
+<input id="loanAmt" min="0" placeholder="금액(원)" step="1000" style="flex:1; min-width:120px; border-radius:10px; border:1px solid var(--line); background:rgba(240,245,255,.8); color:#111; padding:8px 10px" type="number"/>
+<button class="btn-odd" id="borrowBtn">돈 빌리기</button>
+<button class="btn-even" id="repayBtn">돈 갚기</button>
+</div>
+<div class="btn-row" style="gap:8px; margin-top:10px">
+<label>베팅 금액: <input id="betInput" min="100" step="100" style="width:140px; border-radius:10px; padding:8px 10px; border:1px solid var(--line); background:rgba(240,245,255,.8); color:#111" type="number" value="1000"/></label>
+<span class="sub">(직접 조절 가능)</span>
+</div>
 </section>
-
-
-  <!-- JSON Save/Load (Export/Import) -->
-  <div class="btn-row" style="gap:8px; margin-top:10px; flex-wrap:wrap">
-    <button class="btn-ghost" id="exportJsonBtn">JSON 내보내기</button>
-    <button class="btn-ghost" id="importJsonBtn">JSON 불러오기</button>
-    <input type="file" id="importJsonInput" accept="application/json" style="display:none">
-    <span class="sub">현재 상태/로그를 JSON으로 저장하고 불러옵니다.</span>
-  </div>
-
-
 <!-- 테이블 & 퀵 게임 -->
 <section class="card">
-  <div class="title"><h2>테이블 & 퀵 게임</h2><div class="sub">홀짝 · 동전 · 하이/로우 · 사다리 — 승률: <b class="pLive"></b></div></div>
-
-  <div class="item" style="margin-bottom:10px">
-    <h4>홀짝 <small>(승률 <b class="pLive"></b>)</small></h4>
-    <p class="desc">1,000의 자릿수로 홀/짝을 맞추면 승리. 승리시 설정된 배당(업그레이드/난이도/이벤트 반영)으로 지급.</p>
-    <div class="btn-row">
-      <button class="btn-odd" id="oddBtn" aria-label="홀짝 게임: 홀에 베팅">홀수</button>
-      <button class="btn-even" id="evenBtn" aria-label="홀짝 게임: 짝에 베팅">짝수</button>
-      <button class="btn-ghost" id="resetBtnInLine" aria-label="초기화">초기화</button>
-    </div>
-    <div id="result" class="display" aria-live="polite">결과 대기중…</div>
-  </div>
-
-  <div class="grid">
-    <div class="item">
-      <h4>동전 던지기 <small>(승률 <b class="pLive"></b>)</small></h4>
-      <p class="desc">앞/뒤 선택 후 랜덤. 업그레이드에 따라 승률/배당이 달라짐.</p>
-      <div class="coin"><div id="coinFace" class="coin-inner"><div class="coin-face">앞</div></div></div>
-      <div class="btn-row">
-        <button class="btn-odd" id="coinH">앞</button>
-        <button class="btn-even" id="coinT">뒤</button>
-      </div>
-      <div id="coinResult" class="display">결과 대기중…</div>
-    </div>
-
-    <div class="item">
-      <h4>하이 / 로우 <small>(승률 <b class="pLive"></b>)</small></h4>
-      <p class="desc">1~100 중 랜덤 수. 50 초과면 HIGH, 이하면 LOW. 선택이 맞으면 승리.</p>
-      <div id="odometer" class="odometer">—</div>
-      <div class="btn-row">
-        <button class="btn-odd" id="lowBtn">LOW</button>
-        <button class="btn-even" id="highBtn">HIGH</button>
-      </div>
-      <div id="hlResult" class="display">결과 대기중…</div>
-    </div>
-
-    <div class="item">
-      <h4>사다리 <small>(승률 <b class="pLive"></b>)</small></h4>
-      <p class="desc">좌/우 중 선택해 아래까지 내려가기. 가로줄 수에 따라 결과가 달라짐.</p>
-      <canvas id="ladderCanvas" width="280" height="190" style="width:100%; background:rgba(240,245,255,.08); border:1px solid var(--line); border-radius:8px"></canvas>
-      <div class="btn-row">
-        <button class="btn-odd" id="ladderLeft">LEFT</button>
-        <button class="btn-even" id="ladderRight">RIGHT</button>
-      </div>
-      <div id="ladderResult" class="display">결과 대기중…</div>
-    </div>
-  </div>
+<div class="title"><h2>테이블 &amp; 퀵 게임</h2><div class="sub">홀짝 · 동전 · 하이/로우 · 사다리 — 승률: <b class="pLive"></b></div></div>
+<div class="item" style="margin-bottom:10px">
+<h4>홀짝 <small>(승률 <b class="pLive"></b>)</small></h4>
+<p class="desc">1,000의 자릿수로 홀/짝을 맞추면 승리. 승리시 설정된 배당(업그레이드/난이도/이벤트 반영)으로 지급.</p>
+<div class="btn-row">
+<button aria-label="홀짝 게임: 홀에 베팅" class="btn-odd" id="oddBtn">홀수</button>
+<button aria-label="홀짝 게임: 짝에 베팅" class="btn-even" id="evenBtn">짝수</button>
+<button aria-label="초기화" class="btn-ghost" id="resetBtnInLine">초기화</button>
+</div>
+<div aria-live="polite" class="display" id="result">결과 대기중…</div>
+</div>
+<div class="grid">
+<div class="item">
+<h4>동전 던지기 <small>(승률 <b class="pLive"></b>)</small></h4>
+<p class="desc">앞/뒤 선택 후 랜덤. 업그레이드에 따라 승률/배당이 달라짐.</p>
+<div class="coin"><div class="coin-inner" id="coinFace"><div class="coin-face">앞</div></div></div>
+<div class="btn-row">
+<button class="btn-odd" id="coinH">앞</button>
+<button class="btn-even" id="coinT">뒤</button>
+</div>
+<div class="display" id="coinResult">결과 대기중…</div>
+</div>
+<div class="item">
+<h4>하이 / 로우 <small>(승률 <b class="pLive"></b>)</small></h4>
+<p class="desc">1~100 중 랜덤 수. 50 초과면 HIGH, 이하면 LOW. 선택이 맞으면 승리.</p>
+<div class="odometer" id="odometer">—</div>
+<div class="btn-row">
+<button class="btn-odd" id="lowBtn">LOW</button>
+<button class="btn-even" id="highBtn">HIGH</button>
+</div>
+<div class="display" id="hlResult">결과 대기중…</div>
+</div>
+<div class="item">
+<h4>사다리 <small>(승률 <b class="pLive"></b>)</small></h4>
+<p class="desc">좌/우 중 선택해 아래까지 내려가기. 가로줄 수에 따라 결과가 달라짐.</p>
+<canvas height="190" id="ladderCanvas" style="width:100%; background:rgba(240,245,255,.08); border:1px solid var(--line); border-radius:8px" width="280"></canvas>
+<div class="btn-row">
+<button class="btn-odd" id="ladderLeft">LEFT</button>
+<button class="btn-even" id="ladderRight">RIGHT</button>
+</div>
+<div class="display" id="ladderResult">결과 대기중…</div>
+</div>
+</div>
 </section>
-
 <!-- 슬롯 & 룰렛 -->
 <section class="card">
-  <div class="title"><h2>슬롯 & 룰렛 존</h2><div class="sub">단계 감속 · 결과 동기화 · 역잭팟 · 강화 보상</div></div>
-  <div class="grid">
-    <div class="item">
-      <h4>미니 슬롯 <small>(3개=×2.5(강화), 2개=×0.4(강화), <b class="sym-7">777=잭팟×10(강화)</b>)</small></h4>
-      <p class="desc">스핀 결과 조합에 따라 배당. v2에서는 손익이 대폭 강화: 무배당시 손실 30배, 2개 일치×4, 3개 일치×75, 777은 ×100.</p>
-      <div class="slot-frame">
-        <div class="reels">
-          <div id="reel1" class="reel">-</div>
-          <div id="reel2" class="reel">-</div>
-          <div id="reel3" class="reel">-</div>
-        </div>
-      </div>
-      <div class="btn-row">
-        <button class="btn-rand" id="slotBtn">스핀</button>
-      </div>
-      <div id="slotResult" class="display">결과 대기중…</div>
-    </div>
-
-    <div class="item">
-      <h4>룰렛 <small>(색상베팅 승률 <b class="pLive"></b>)</small></h4>
-      <p class="desc">0~36. 색상 1:1, 숫자 35:1. 난이도/업그레이드 영향을 받음.</p>
-      <div class="muted">0~36 · 색상 1:1, 숫자 35:1</div>
-      <div id="rouletteSpin" class="display">대기중…</div>
-      <div class="btn-row" style="margin-top:8px">
-        <button class="btn-odd" data-roulette="RED">RED</button>
-        <button class="btn-even" data-roulette="BLACK">BLACK</button>
-      </div>
-      <div class="btn-row" style="margin-top:6px">
-        <input id="rouletteNum" type="number" placeholder="숫자(0~36)" min="0" max="36" style="flex:1; min-width:120px; border-radius:10px; border:1px solid var(--line); background:rgba(240,245,255,.8); color:#111; padding:8px 10px">
-        <button class="btn-ghost" id="rouletteNumBtn">숫자 베팅</button>
-      </div>
-      <div id="rouletteResult" class="display">결과 대기중…</div>
-    </div>
-  </div>
+<div class="title"><h2>슬롯 &amp; 룰렛 존</h2><div class="sub">단계 감속 · 결과 동기화 · 역잭팟 · 강화 보상</div></div>
+<div class="grid">
+<div class="item">
+<h4>미니 슬롯 <small>(3개=×2.5(강화), 2개=×0.4(강화), <b class="sym-7">777=잭팟×10(강화)</b>)</small></h4>
+<p class="desc">스핀 결과 조합에 따라 배당. v2에서는 손익이 대폭 강화: 무배당시 손실 30배, 2개 일치×4, 3개 일치×75, 777은 ×100.</p>
+<div class="slot-frame">
+<div class="reels">
+<div class="reel" id="reel1">-</div>
+<div class="reel" id="reel2">-</div>
+<div class="reel" id="reel3">-</div>
+</div>
+</div>
+<div class="btn-row">
+<button class="btn-rand" id="slotBtn">스핀</button>
+</div>
+<div class="display" id="slotResult">결과 대기중…</div>
+</div>
+<div class="item">
+<h4>룰렛 <small>(색상베팅 승률 <b class="pLive"></b>)</small></h4>
+<p class="desc">0~36. 색상 1:1, 숫자 35:1. 난이도/업그레이드 영향을 받음.</p>
+<div class="muted">0~36 · 색상 1:1, 숫자 35:1</div>
+<div class="display" id="rouletteSpin">대기중…</div>
+<div class="btn-row" style="margin-top:8px">
+<button class="btn-odd" data-roulette="RED">RED</button>
+<button class="btn-even" data-roulette="BLACK">BLACK</button>
+</div>
+<div class="btn-row" style="margin-top:6px">
+<input id="rouletteNum" max="36" min="0" placeholder="숫자(0~36)" style="flex:1; min-width:120px; border-radius:10px; border:1px solid var(--line); background:rgba(240,245,255,.8); color:#111; padding:8px 10px" type="number"/>
+<button class="btn-ghost" id="rouletteNumBtn">숫자 베팅</button>
+</div>
+<div class="display" id="rouletteResult">결과 대기중…</div>
+</div>
+</div>
 </section>
-
 <!-- 로그 + 그래프 -->
 <section class="card">
-  <div class="title"><h2>베팅 로그</h2><div class="sub">최근 100개 & 보유금 그래프 · 타임라인</div></div>
-  <div id="log" class="log"></div>
-  <canvas id="balanceChart" width="1040" height="180" aria-label="보유금 그래프" role="img"></canvas>
+<div class="title"><h2>베팅 로그</h2><div class="sub">최근 100개 &amp; 보유금 그래프 · 타임라인</div></div>
+<div class="log" id="log"></div>
+<canvas aria-label="보유금 그래프" height="180" id="balanceChart" role="img" width="1040"></canvas>
 </section>
-
-  </div>  <!-- 잭팟 FX -->  <div id="boom" class="boom hide" aria-hidden="true">
-    <div class="boom-text">777 JACKPOT!</div>
-    <div class="flash" id="flash"></div>
-    <div class="ring" id="ring"></div>
-  </div>  <!-- 초기화 확인 패널 -->  <div id="resetConfirm" aria-modal="true" role="dialog">
-    <div class="hint">초기화를 진행하려면 <b>RESET</b>을 입력하세요.</div>
-    <input id="resetInput" placeholder="RESET" />
-    <div class="hint">3초 대기 후 버튼이 활성화됩니다.</div>
-    <div class="bar"><div id="resetBar"></div></div>
-    <div class="row">
-      <button class="btn-ghost" id="resetCancel">취소</button>
-      <button class="btn-odd" id="resetDo" disabled>완전 초기화</button>
-    </div>
-    <div class="hint" id="resetCooldownHint" style="display:none"></div>
-  </div>  <!-- 파산 오버레이 -->  <div id="bankruptOverlay" class="overlay" aria-modal="true" role="dialog">
-    <div class="modal">
-      <h3>파산했습니다 💥</h3>
-      <p>화면을 잠시 어둡게 했습니다. 다시 시작하시겠습니까?</p>
-      <div style="display:flex; gap:8px; justify-content:center; margin-top:8px">
-        <button class="btn-ghost" id="bkCancel">아니오</button>
-        <button class="btn-rand" id="bkRestart">다시 시작</button>
-      </div>
-    </div>
-  </div>  <!-- 캡차 오버레이 -->  <div id="captchaOverlay" class="overlay" aria-modal="true" role="dialog">
-    <div class="modal">
-      <h3>잠깐! 사람인지 확인 👀</h3>
-      <p id="captchaQ">7 + 5 = ?</p>
-      <input id="captchaA" placeholder="정답" style="width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--line); background:rgba(240,245,255,.85); color:#111">
-      <div style="display:flex; gap:8px; justify-content:center; margin-top:8px">
-        <button class="btn-ghost" id="captchaCancel">취소</button>
-        <button class="btn-rand" id="captchaOk">확인</button>
-      </div>
-      <div class="hint">잭팟/역잭팟 이후 일정 시간 입력이 잠시 비활성화 됩니다.</div>
-    </div>
-  </div>  <!-- 이벤트 오버레이 -->  <div id="eventOverlay" class="overlay" aria-modal="true" role="dialog">
-    <div class="modal">
-      <h3>행운의 카드 ✨</h3>
-      <p class="muted">랜덤 버프/디버프가 발생합니다.</p>
-      <div class="choices" id="eventChoices"></div>
-    </div>
-  </div>  <!-- 스킬카드 오버레이 -->  <div id="skillOverlay" class="overlay" aria-modal="true" role="dialog">
-    <div class="modal">
-      <h3>스킬카드 선택 🃏</h3>
-      <p class="muted">100회 시도마다 1개 선택</p>
-      <div class="choices" id="skillChoices"></div>
-    </div>
-  </div><script>
+</div> <!-- 잭팟 FX --> <div aria-hidden="true" class="boom hide" id="boom">
+<div class="boom-text">777 JACKPOT!</div>
+<div class="flash" id="flash"></div>
+<div class="ring" id="ring"></div>
+</div> <!-- 초기화 확인 패널 --> <div aria-modal="true" id="resetConfirm" role="dialog">
+<div class="hint">초기화를 진행하려면 <b>RESET</b>을 입력하세요.</div>
+<input id="resetInput" placeholder="RESET"/>
+<div class="hint">3초 대기 후 버튼이 활성화됩니다.</div>
+<div class="bar"><div id="resetBar"></div></div>
+<div class="row">
+<button class="btn-ghost" id="resetCancel">취소</button>
+<button class="btn-odd" disabled="" id="resetDo">완전 초기화</button>
+</div>
+<div class="hint" id="resetCooldownHint" style="display:none"></div>
+</div> <!-- 파산 오버레이 --> <div aria-modal="true" class="overlay" id="bankruptOverlay" role="dialog">
+<div class="modal">
+<h3>파산했습니다 💥</h3>
+<p>화면을 잠시 어둡게 했습니다. 다시 시작하시겠습니까?</p>
+<div style="display:flex; gap:8px; justify-content:center; margin-top:8px">
+<button class="btn-ghost" id="bkCancel">아니오</button>
+<button class="btn-rand" id="bkRestart">다시 시작</button>
+</div>
+</div>
+</div> <!-- 캡차 오버레이 --> <div aria-modal="true" class="overlay" id="captchaOverlay" role="dialog">
+<div class="modal">
+<h3>잠깐! 사람인지 확인 👀</h3>
+<p id="captchaQ">7 + 5 = ?</p>
+<input id="captchaA" placeholder="정답" style="width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--line); background:rgba(240,245,255,.85); color:#111"/>
+<div style="display:flex; gap:8px; justify-content:center; margin-top:8px">
+<button class="btn-ghost" id="captchaCancel">취소</button>
+<button class="btn-rand" id="captchaOk">확인</button>
+</div>
+<div class="hint">잭팟/역잭팟 이후 일정 시간 입력이 잠시 비활성화 됩니다.</div>
+</div>
+</div> <!-- 이벤트 오버레이 --> <div aria-modal="true" class="overlay" id="eventOverlay" role="dialog">
+<div class="modal">
+<h3>행운의 카드 ✨</h3>
+<p class="muted">랜덤 버프/디버프가 발생합니다.</p>
+<div class="choices" id="eventChoices"></div>
+</div>
+</div> <!-- 스킬카드 오버레이 --> <div aria-modal="true" class="overlay" id="skillOverlay" role="dialog">
+<div class="modal">
+<h3>스킬카드 선택 🃏</h3>
+<p class="muted">100회 시도마다 1개 선택</p>
+<div class="choices" id="skillChoices"></div>
+</div>
+</div><script>
 (function(){ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded', init);} else {init();} })();
 
 function init(){
@@ -876,7 +740,7 @@ const FX = (function(){
 })();
 
 /* ===== 안내(토스트 대체) ===== */
-(function(){ const msgs=["환영합니다! 동언뱃 v2.","게임은 재미로만! 과몰입 금지."]; let i=0; const div=document.createElement('div'); div.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:20000;background:rgba(16,20,33,.8);backdrop-filter:blur(10px);padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.08);font-weight:800'; document.body.appendChild(div); function next(){ if(i>=msgs.length){div.remove(); return;} div.textContent=msgs[i++]; setTimeout(next,1200);} next(); })();
+(function(){ const msgs=["환영합니다! 동동뱃 v2.","게임은 재미로만! 과몰입 금지."]; let i=0; const div=document.createElement('div'); div.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:20000;background:rgba(16,20,33,.8);backdrop-filter:blur(10px);padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.08);font-weight:800'; document.body.appendChild(div); function next(){ if(i>=msgs.length){div.remove(); return;} div.textContent=msgs[i++]; setTimeout(next,1200);} next(); })();
 
 /* ===== 잭팟 증액(느리게, 성장 계수 적용) ===== */
 (function incJP(){
@@ -1391,130 +1255,30 @@ document.addEventListener('visibilitychange', ()=>{ if(document.hidden) FX.stop(
 
 }
 </script>
-<button class="btn-ghost" id="resetBtn">초기화</button>
-
 <script>
 (function(){
-  const $  = (s,root=document)=>root.querySelector(s);
-  const $$ = (s,root=document)=>Array.from(root.querySelectorAll(s));
-  const side = $("#sidebar");
-  const tog  = $("#sideToggle");
-  if(tog && side){
-    tog.addEventListener("click", ()=> side.classList.toggle("open"));
-  }
-
-  // Utility: move a node into the given container
-  function moveNode(node, containerId){
-    const slot = document.getElementById(containerId);
-    if(node && slot) slot.appendChild(node);
-  }
-
-  // Try to locate existing controls by text (Korean UI) or IDs
-  function matchByText(selectors, keywords){
-    const nodes = [];
-    selectors.forEach(sel => {
-      $$(sel).forEach(el => {
-        const t = (el.innerText || "").trim();
-        if(!t) return;
-        for(const kw of keywords){
-          if(t.includes(kw)) { nodes.push(el); break; }
-        }
-      });
-    });
-    return nodes;
-  }
-
-  // Candidates: buttons, labels, switches, etc.
-  const candidates = ["button","[role='button']","label",".btn",".toggle",".switch"];
-
-  // 1) 버튼 정렬
-  matchByText(candidates, ["버튼 정렬","정렬"]).forEach(el=> moveNode(el, "sidebarRow1"));
-
-  // 2) 테마 변경
-  matchByText(candidates, ["테마 변경","테마 번경","테마","Theme"]).forEach(el=> moveNode(el, "sidebarRow1"));
-
-  // 3) WebGL 효과 토글
-  matchByText(candidates, ["WebGL","웹지엘","배경 효과","배경 WebGL"]).forEach(el=> moveNode(el, "sidebarRow2"));
-
-  // 4) 초기화 버튼
-  matchByText(candidates, ["초기화","리셋","Reset"]).forEach(el=> moveNode(el, "sidebarRow3"));
-
-  // Keyboard shortcut: open/close sidebar with Alt+S
-  addEventListener("keydown", (e)=>{
-    if(e.altKey && (e.key === 's' || e.key === 'S')){
-      side.classList.toggle("open");
-      e.preventDefault();
+  function ready(fn){ if(document.readyState!=='loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
+  ready(function(){
+    var sb = document.getElementById('sidebar');
+    var tgl = document.getElementById('sidebarToggle');
+    if(tgl && sb){
+      tgl.addEventListener('click', function(){ sb.classList.toggle('open'); });
+    }
+    var fx = document.getElementById('fxToggle');
+    var save = document.getElementById('savePref');
+    function applyBg(){
+      if(!fx) return;
+      document.body.classList.toggle('bg-animated', !!fx.checked);
+    }
+    // Apply once at boot (respect stored pref if code set it already)
+    try{
+      // If original code already stored KEY.FX, fx.checked reflects it
+      applyBg();
+    }catch(e){}
+    if(save){
+      save.addEventListener('click', function(){ applyBg(); });
     }
   });
 })();
-</script>
-
-
-<script>
-// === JSON Export / Import for 『동언뱃』 v2 ===
-(function(){
-  const $ = (s)=>document.querySelector(s);
-  const exportBtn = $("#exportJsonBtn");
-  const importBtn = $("#importJsonBtn");
-  const input     = $("#importJsonInput");
-  if(!exportBtn || !importBtn || !input) return;
-
-  const KEYS = [
-    "bal","peak","min","wins","loss","jackpot","logJSON",
-    "theme","align","fx","upLevel","jpLevel",
-    "loanPrincipal","loansTaken",
-    "resetTimestamp","shieldRev","shieldBk","noLoseUntil","jpModeUntil",
-    "failBias","rewardBoost","ver"
-  ];
-
-  function exportJSON(){
-    const data = { __app: "『동언뱃』 v2", note:"게임 상태/로그 저장본", exportedAt: new Date().toISOString() };
-    KEYS.forEach(k=>{
-      const v = localStorage.getItem(k);
-      if(v !== null) data[k] = v;
-    });
-    data.__ua = navigator.userAgent;
-    const blob = new Blob([ JSON.stringify(data, null, 2) ], { type:"application/json" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "dongEonBet_v2_" + new Date().toISOString().replace(/[:.]/g,"-") + ".json";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(()=> URL.revokeObjectURL(a.href), 2000);
-  }
-
-  function importJSON(file){
-    const reader = new FileReader();
-    reader.onload = () => {
-      try{
-        const obj = JSON.parse(reader.result);
-        let restored = 0;
-        KEYS.forEach(k=>{
-          if(Object.prototype.hasOwnProperty.call(obj,k)){
-            localStorage.setItem(k, String(obj[k]));
-            restored++;
-          }
-        });
-        alert("불러오기 완료 ("+restored+"개 키). 페이지를 새로고침합니다.");
-        location.reload();
-      }catch(e){
-        alert("JSON 파싱 실패: " + e.message);
-      }
-    };
-    reader.readAsText(file, "utf-8");
-  }
-
-  exportBtn.addEventListener("click", exportJSON);
-  importBtn.addEventListener("click", ()=> input.click());
-  input.addEventListener("change", (e)=>{
-    const f = e.target.files && e.target.files[0];
-    if(!f) return;
-    importJSON(f);
-    input.value = "";
-  });
-})();
-</script>
-
-</body>
+</script></body>
 </html>
