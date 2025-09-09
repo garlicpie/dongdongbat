@@ -4,12 +4,17 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Slot</title>
+
+<!-- Fonts: Noto Sans / Noto Sans KR (Noto Color Emoji는 OS 폰트 사용) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700;900&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+
 <style>
   :root{
     --bg:#000;
     --gold1:#fff89a; --gold2:#ffe14b; --gold3:#ffd100; --gold4:#c99600;
-    --reelW:110px; --reelH:130px; --gap:14px;       /* 슬롯 조금 더 작게 */
-    --boxRadius:12px;
+    --reelW:110px; --reelH:130px; --gap:14px;
   }
   html,body{height:100%}
   body{
@@ -19,31 +24,28 @@
   }
   .wrap{position:relative;width:100vw;height:100vh}
 
-  /* 중앙 슬롯 캔버스(그림은 캔버스에서, 탭 영역은 화면 전체) */
-  #slot{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);image-rendering:auto}
+  /* 중앙 슬롯 캔버스 */
+  #slot{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);image-rendering:auto;z-index:2}
 
-  /* 돈(숫자만) — 자리수별 전환을 위해 컨테이너 */
+  /* 돈(자리수별) 복구 + 상위 zindex */
   .money-wrap{
     position:absolute;top:20px;left:50%;transform:translateX(-50%);
-    display:flex;gap:2px;align-items:center;user-select:none;
+    display:flex;gap:2px;align-items:center;user-select:none;z-index:5;
     font-weight:1000;font-size:clamp(28px,6vw,52px);letter-spacing:.5px;
     background:linear-gradient(180deg,var(--gold1),var(--gold2) 40%,var(--gold3) 70%,var(--gold4));
     -webkit-background-clip:text;background-clip:text;color:transparent;
     text-shadow:0 2px 0 rgba(0,0,0,.55),0 10px 26px rgba(255,224,0,.28);
+    font-family:"Noto Sans","Noto Sans KR","Noto Color Emoji",sans-serif;
   }
-  .digit{
-    position:relative;display:inline-block;min-width:0.6em;text-align:center;
-  }
-  .digit .old,.digit .new{
-    position:absolute;left:0;right:0;top:0;will-change:transform,opacity;
-  }
+  .digit{position:relative;display:inline-block;min-width:0.6em;text-align:center}
+  .digit .old,.digit .new{position:absolute;left:0;right:0;top:0;will-change:transform,opacity}
   .digit .old{animation:fallOut .25s ease forwards}
   .digit .new{transform:translateY(-0.9em);opacity:0;animation:fallIn .25s ease forwards}
   @keyframes fallOut{from{transform:translateY(0);opacity:1}to{transform:translateY(0.9em);opacity:0}}
   @keyframes fallIn {from{transform:translateY(-0.9em);opacity:0}to{transform:translateY(0);opacity:1}}
 
-  /* JACKPOT FX */
-  .fx{ position:absolute;inset:0;pointer-events:none; }
+  /* FX */
+  .fx{ position:absolute;inset:0;pointer-events:none; z-index:3 }
   .jackpot{
     position:absolute;inset:0;display:grid;place-items:center;opacity:0;visibility:hidden;transition:opacity .25s;
   }
@@ -64,8 +66,8 @@
   @keyframes spin{to{transform:scale(1.05) rotate(360deg)}}
   @keyframes pulse{from{opacity:.6}to{opacity:.93}}
 
-  /* 콘솔 입력 */
-  .console{ position:absolute;left:50%;bottom:22px;transform:translateX(-50%);width:min(680px,92vw);display:none; }
+  /* 콘솔 복구 + 상위 zindex */
+  .console{ position:absolute;left:50%;bottom:22px;transform:translateX(-50%);width:min(680px,92vw);display:none; z-index:10 }
   .console.show{display:block}
   .console input{
     width:100%;padding:12px 14px;border-radius:10px;border:1px solid #333;outline:none;color:#fff;background:#0d0d0d;
@@ -74,13 +76,12 @@
     font-family:"Noto Sans","Noto Sans KR",sans-serif;
   }
 
-  /* DEV 패널: 슬롯을 가리지 않도록 좌하단 도킹(작게) */
+  /* DEV: 좌하단, 슬롯 안가리게, 상위 zindex */
   .dev{
     position:absolute;left:12px;bottom:12px;max-width:min(520px,44vw);max-height:36vh;overflow:auto;
     background:#0b0b0b;border:1px solid #2a2a2a;border-radius:12px;padding:10px 12px;color:#ddd;
     font: 12.5px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    display:none; z-index:3;
-    box-shadow:0 8px 28px rgba(0,0,0,.5);
+    display:none; z-index:8; box-shadow:0 8px 28px rgba(0,0,0,.5);
   }
   .dev.show{display:block}
   .dev h3{margin:.2em 0 .4em;font-size:13.5px;color:#ffe14b;font-family:"Noto Sans","Noto Sans KR",sans-serif;}
@@ -93,7 +94,7 @@
 <div class="wrap" id="app" aria-label="tap anywhere">
   <canvas id="slot" width="400" height="150" aria-label="slot"></canvas>
 
-  <!-- 돈 (자리수별 렌더링) -->
+  <!-- Money -->
   <div class="money-wrap" id="moneyWrap" aria-live="polite"></div>
 
   <!-- FX -->
@@ -102,7 +103,7 @@
     <div class="jackpot" id="jackpot"><div class="txt">JACKPOT!</div></div>
   </div>
 
-  <!-- 콘솔 -->
+  <!-- Console -->
   <div class="console" id="console"><input id="cmd" type="text" spellcheck="false" autocomplete="off" placeholder="/777, /dev, /devoff"/></div>
 
   <!-- DEV -->
@@ -117,25 +118,20 @@
 
 <script>
 (()=> {
-  /* ================= CONFIG (영문 표기만 노출) ================= */
   const CFG = {
     reels: 3,
-    reelW: 110, reelH: 130, gap: 14,                // 요청: 조금 더 작게 + 리얼 박스는 캔버스에서 그림
-    cost: 100,                                       // bet per spin (음수 허용)
-    // 가중치(확률) — 값이 클수록 자주 등장
+    reelW: 110, reelH: 130, gap: 14,
+    cost: 100,
     weights: { "🍒":6, "🍋":6, "⭐":3, "7":1, "💎":2, "🔔":4, "🍀":5, "🍇":6 },
-    // 배당(배수)
     pay3:    { "7":1000, "💎":200, "⭐":80, "🔔":30, "🍀":20, "🍒":10, "🍋":8, "🍇":6 },
     pay2:    { "7":25,   "💎":6,   "⭐":3,  "🔔":2,  "🍀":2,  "🍒":2,  "🍋":2, "🍇":2 },
-    /* 스핀/정지 동작 */
-    spinCellsPerSec: 18,       // 회전 속도(초당 셀 수) — 등속
-    stopStagger: 420,          // 릴 정지 시작 간격(ms) — 좌→우 순차
-    stopDuration: 900,         // 각 릴이 정지에 걸리는 시간(ms) — 모두 동일(요청사항)
-    extraTurns: 2,             // 정지 시작 후 추가로 도는 바퀴 수(고정, 랜덤 X)
-    cellPadRatio: 0.14         // 셀 안쪽 여백(이모지 작게 보이도록)
+    spinCellsPerSec: 18,
+    stopStagger: 420,
+    stopDuration: 900,
+    extraTurns: 2,
+    cellPadRatio: 0.14
   };
 
-  /* ================= STATE ================= */
   const el = {
     cvs: document.getElementById('slot'),
     app: document.getElementById('app'),
@@ -151,7 +147,6 @@
   };
   const ctx = el.cvs.getContext('2d');
 
-  /* DPR/캔버스 크기 */
   function sizeCanvas(){
     const dpr = Math.max(1, Math.min(2, window.devicePixelRatio||1));
     const W = CFG.reelW*CFG.reels + CFG.gap*(CFG.reels-1);
@@ -161,15 +156,24 @@
     return dpr;
   }
   let DPR = sizeCanvas();
-  window.addEventListener('resize', ()=>{ DPR=sizeCanvas(); drawStatic(); });
+  window.addEventListener('resize', ()=>{ DPR=sizeCanvas(); drawAll(); });
 
-  /* SYMBOLS & SHEET (세로 시트, 정사각 셀) */
   const SYMBOLS = ["🍒","🍋","⭐","7","💎","🔔","🍀","🍇"];
   const IDX = Object.fromEntries(SYMBOLS.map((s,i)=>[s,i]));
   const N = SYMBOLS.length;
 
-  function makeSheet(){
-    const px = Math.max(220, Math.floor(CFG.reelH*1.9)); // 고해상도 → 축소
+  let SPR = {sheet:null, px:0}; // 폰트 로드 전에는 null
+  async function makeSheetAfterFonts(){
+    // 폰트 로드 보장
+    try{
+      await document.fonts.ready;
+      await Promise.all([
+        document.fonts.load('900 24px "Noto Sans"'),
+        document.fonts.load('900 24px "Noto Sans KR"'),
+        document.fonts.load('24px "Noto Color Emoji"')
+      ]);
+    }catch(e){}
+    const px = Math.max(220, Math.floor(CFG.reelH*1.9));
     const cnv = document.createElement('canvas'); cnv.width = px; cnv.height = px*N;
     const c = cnv.getContext('2d');
     c.textAlign='center'; c.textBaseline='middle';
@@ -178,49 +182,43 @@
       if(SYMBOLS[i]==="7"){
         c.font = `900 ${Math.floor(px*0.66)}px "Noto Sans","Noto Sans KR",sans-serif`;
         c.fillStyle='#fff';
-        c.lineWidth = Math.max(2, px*0.02); c.strokeStyle='rgba(0,0,0,.45)';
-        c.strokeText('7', px/2, cy);
-        c.fillText('7', px/2, cy);
+        c.lineWidth=Math.max(2,px*0.02); c.strokeStyle='rgba(0,0,0,.45)';
+        c.strokeText('7', px/2, cy); c.fillText('7', px/2, cy);
       }else{
         c.font = `${Math.floor(px*0.74)}px "Noto Color Emoji","Noto Sans",sans-serif`;
         c.fillText(SYMBOLS[i], px/2, cy);
       }
     }
-    return {sheet:cnv, px};
+    SPR = {sheet:cnv, px};
   }
-  const SPR = makeSheet();
 
-  /* 릴(셀 단위 위치) */
   const reels = Array.from({length:CFG.reels}, ()=>({
-    pos: Math.random()*N,            // 현재 위치(셀 단위, 소수 가능)
-    startPos: 0, targetPos: 0,       // 정지 인터폴레이션용
-    stopStart: null, stopEnd: null,  // 정지 구간 시간
+    pos: IDX['7'],            // 초기에는 7을 중앙에
+    startPos: 0, targetPos: 0,
+    stopStart: null, stopEnd: null,
     stopping:false, stopped:true
   }));
 
-  let bank = 10000;             // 음수 허용
-  let state = 'idle';           // idle | spinning | stopping
+  let bank = 10000;
+  let state = 'idle';
   let lastT = 0;
   let rAF = 0;
-  let planIdx = null;           // 정지 시 확정할 결과(다시 누를 때 결정)
+  let planIdx = null;
   let devMode = false;
 
-  /* ==== MONEY (자리수별 애니메이션) ==== */
+  // ========= Money (per-digit) ========
   function renderMoneyDigits(num){
     const s = num.toLocaleString();
-    // 처음 렌더 or 길이가 바뀌면 전체 리빌드
     if(!el.moneyWrap.dataset.text || el.moneyWrap.dataset.text.length !== s.length){
       el.moneyWrap.innerHTML = '';
       for(const ch of s){
         const span = document.createElement('span');
-        span.className='digit';
-        span.textContent = ch;
+        span.className='digit'; span.textContent = ch;
         el.moneyWrap.appendChild(span);
       }
       el.moneyWrap.dataset.text = s;
       return;
     }
-    // 자리수 비교 → 달라진 자리만 교체 애니메이션
     const prev = el.moneyWrap.dataset.text;
     const nodes = Array.from(el.moneyWrap.children);
     for(let i=0;i<s.length;i++){
@@ -229,7 +227,6 @@
       const old = document.createElement('span'); old.className='old'; old.textContent = prev[i];
       const neu = document.createElement('span'); neu.className='new'; neu.textContent = s[i];
       cell.innerHTML=''; cell.appendChild(old); cell.appendChild(neu);
-      // 260ms 후 고정 텍스트로 교체
       setTimeout(()=>{ cell.textContent = s[i]; }, 260);
     }
     el.moneyWrap.dataset.text = s;
@@ -237,29 +234,24 @@
   function setMoney(v, animate=true){
     const from = bank; bank = v;
     if(!animate){ renderMoneyDigits(bank); return; }
-    // 빠른 계단상승 느낌: 차이가 작을수록 step=1, 클수록 step↑
     const diff = Math.abs(bank - from);
     const dir = bank>from ? 1 : -1;
     let cur = from;
     const t0 = performance.now();
     function step(now){
       const elapsed = now - t0;
-      // 220~420ms 내에 수렴되도록 스텝 계산
       const targetDur = Math.min(420, Math.max(220, diff*2));
       const p = Math.min(1, elapsed/targetDur);
-      // 지수 가속으로 속도감
       const eased = p*p;
       const est = from + Math.round((bank - from)*eased);
-      // 최소 1씩은 진행
-      if(est===cur && cur!==bank) cur += dir;
-      else cur = est;
+      if(est===cur && cur!==bank) cur += dir; else cur = est;
       renderMoneyDigits(cur);
       if(cur!==bank) requestAnimationFrame(step);
     }
     requestAnimationFrame(step);
   }
 
-  /* ==== 배당 계산 / RTP ==== */
+  // ========= Payout / RTP =========
   function payoutFor(indices){
     const sym = indices.map(i=>SYMBOLS[i]);
     const counts = {}; sym.forEach(s=>counts[s]=(counts[s]||0)+1);
@@ -272,13 +264,13 @@
     const w = SYMBOLS.map(s=>CFG.weights[s]||0);
     const sum = w.reduce((a,b)=>a+b,0);
     const p = w.map(x=>x/sum);
-    let rtp = 0;
-    for(let i=0;i<N;i++) rtp += (CFG.pay3[SYMBOLS[i]]||0) * Math.pow(p[i],3);
-    for(let i=0;i<N;i++) rtp += (CFG.pay2[SYMBOLS[i]]||0) * (3 * Math.pow(p[i],2) * (1-p[i]));
-    return rtp;
+    let r = 0;
+    for(let i=0;i<N;i++) r += (CFG.pay3[SYMBOLS[i]]||0)*Math.pow(p[i],3);
+    for(let i=0;i<N;i++) r += (CFG.pay2[SYMBOLS[i]]||0)*(3*Math.pow(p[i],2)*(1-p[i]));
+    return r;
   }
 
-  /* ==== 결과 뽑기(정지 시점에 확정) ==== */
+  // ========= Outcome when stopping =========
   function pickOutcome(forced=null){
     if(forced) return forced.slice();
     const bag = SYMBOLS.map(s=>({s,w:CFG.weights[s]}));
@@ -291,7 +283,7 @@
     return [pick(),pick(),pick()];
   }
 
-  /* ==== 그림 도우미 ==== */
+  // ========= Drawing =========
   function rrect(x,y,w,h,r){
     const k = Math.min(r,w/2,h/2);
     ctx.beginPath();
@@ -310,19 +302,30 @@
     const y0 = Math.floor((el.cvs.height - rh)/2);
     const r = reels[i];
 
-    // 외곽 박스 + 클립
+    // 박스 색 살짝 밝게 (#141414 / 라인 #2f2f2f)
     ctx.save();
     rrect(x0,y0,rw,rh,Math.floor(12*DPR));
-    ctx.fillStyle='#101010'; ctx.fill();
-    ctx.strokeStyle='rgba(255,255,255,.06)'; ctx.lineWidth=2*DPR; ctx.stroke();
+    ctx.fillStyle='#141414'; ctx.fill();
+    ctx.strokeStyle='#2f2f2f'; ctx.lineWidth=2*DPR; ctx.stroke();
     ctx.clip();
 
-    // 스프라이트 그리기 (정사각 소스 → 비율 유지, 중앙 배치)
+    // 아직 스프라이트가 없다면 플레이스홀더로 7을 표시
     const pad = Math.floor(CFG.reelH*CFG.cellPadRatio)*DPR;
     const viewH = rh - pad*2;
-    const s = Math.floor(Math.min(rw, viewH) * 0.76);  // 작게
+    const s = Math.floor(Math.min(rw, viewH) * 0.76);
     const dx = x0 + Math.floor((rw - s)/2);
-    // 현재 셀 위치
+
+    if(!SPR.sheet){
+      // 가운데 7
+      ctx.fillStyle='#fff';
+      ctx.font = `${Math.floor(s*0.8)}px "Noto Color Emoji","Noto Sans","Noto Sans KR",sans-serif`;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('7', x0+rw/2, y0+rh/2);
+      ctx.restore();
+      return;
+    }
+
+    // 아래로 회전: shift를 "더하기"로 적용
     const off = ((r.pos%N)+N)%N;
     const base = Math.floor(off);
     const shift = (off - base)*CFG.reelH*DPR;
@@ -330,7 +333,7 @@
     for(let k=-1;k<=2;k++){
       const idx = (base + k + N) % N;
       const sy = idx * SPR.px;
-      const dyTop = y0 + (k*CFG.reelH)*DPR - Math.floor(shift) + pad + Math.floor((viewH - s)/2);
+      const dyTop = y0 + (k*CFG.reelH)*DPR + Math.floor(shift) + pad + Math.floor((viewH - s)/2);
       ctx.drawImage(SPR.sheet, 0, sy, SPR.px, SPR.px, dx, dyTop, s, s);
     }
     ctx.restore();
@@ -341,105 +344,92 @@
     for(let i=0;i<reels.length;i++) drawReel(i);
   }
 
-  /* ==== JACKPOT ==== */
+  // ========= FX =========
   function showJackpot(){
     el.jp.classList.add('show'); el.rb.classList.add('show');
     setTimeout(()=>{ el.jp.classList.remove('show'); el.rb.classList.remove('show'); }, 1800);
   }
 
-  /* ==== 루프 ==== */
+  // ========= Loop (아래로 회전) =========
+  let rAFid = 0;
   function loop(t){
-    if(!lastT) lastT = t;
-    const dt = Math.min(50, t - lastT)/1000; // sec
-    lastT = t;
-
+    const dt = (lastT?Math.min(50, t-lastT):16)/1000; lastT=t;
     let allStopped = true;
-    const v = CFG.spinCellsPerSec * dt;
+    const dv = CFG.spinCellsPerSec * dt;
 
     for(let i=0;i<reels.length;i++){
       const r = reels[i];
-
       if(state==='spinning'){
-        r.pos += v; r.stopped=false; allStopped=false;
+        r.pos -= dv;                       // ↓ 아래로
+        r.stopped=false; allStopped=false;
       }else if(state==='stopping'){
-        if(!r.stopping){                   // 아직 감속 시작 전
+        if(!r.stopping){
           if(t >= (r.stopStart||Infinity)){
-            // 정지 구간 설정(고정 시간)
             r.stopping = true;
             r.startPos = r.pos;
+            // 현재 위치(0..N), 목표 인덱스를 "아래 방향"으로 맞추기
             const cur = ((r.startPos%N)+N)%N;
             const idx = planIdx[i];
-            const diff = (idx - cur + N) % N;
-            const total = diff + CFG.extraTurns*N;
-            r.targetPos = r.startPos + total;
+            // 아래로 진행 ⇒ 음수 방향으로 이동
+            const diffDown = ((cur - idx + N) % N); // cur에서 idx까지 아래로 내려갈 셀 수
+            const total = diffDown + CFG.extraTurns*N;
+            r.targetPos = r.startPos - total;       // 아래로 감
             r.stopEnd = r.stopStart + CFG.stopDuration;
           }else{
-            r.pos += v;
-            allStopped=false;
+            r.pos -= dv; allStopped=false;
           }
         }
         if(r.stopping){
           const p = Math.min(1, (t - r.stopStart) / CFG.stopDuration);
-          // 부드러운 감속(고정 시간)
-          const ease = 1 - Math.pow(1 - p, 3); // easeOutCubic
-          r.pos = r.startPos + ease * (r.targetPos - r.startPos);
-          if(p < 1){ r.stopped=false; allStopped=false; }
+          const ease = 1 - Math.pow(1 - p, 3);
+          r.pos = r.startPos + (r.targetPos - r.startPos) * ease;
+          if(p<1){ r.stopped=false; allStopped=false; }
           else { r.pos = r.targetPos; r.stopped = true; }
         }
       }
     }
 
     drawAll();
-
-    if(!allStopped){ rAF = requestAnimationFrame(loop); return; }
-    // 모두 정지 → 정산
-    rAF = 0; state='idle';
-    settle();
+    if(!allStopped){ rAFid = requestAnimationFrame(loop); return; }
+    rAFid = 0; state='idle'; settle();
   }
 
-  /* ==== 입력: 화면 전체 탭 / Space / 콘솔 ==== */
+  // ========= Input (전체 화면 탭/Space/Console) =========
   function startSpin(){
     if(state!=='idle') return;
-    setMoney(bank - CFG.cost, true); // 음수 허용
+    setMoney(bank - CFG.cost, true);
     state='spinning'; lastT=0;
-    if(!rAF) rAF = requestAnimationFrame(loop);
+    if(!rAFid) rAFid = requestAnimationFrame(loop);
   }
   function beginStop(force777=false){
     if(state!=='spinning') return;
-    // 결과는 "정지 버튼을 누른 순간" 확정
     planIdx = force777 ? [IDX['7'],IDX['7'],IDX['7']] : pickOutcome();
     state='stopping';
     const t0 = performance.now();
     reels.forEach((r,i)=>{ r.stopStart = t0 + CFG.stopStagger*i; r.stopping=false; });
   }
 
-  // 전체 화면 탭 (콘솔/DEV 클릭은 제외)
   el.app.addEventListener('pointerdown', (e)=>{
     const ignore = e.target.closest('.console,.dev,#cmd');
     if(ignore) return;
-    if(state==='idle') startSpin();
-    else if(state==='spinning') beginStop(false);
+    if(state==='idle') startSpin(); else if(state==='spinning') beginStop(false);
   });
-  // Space: 토글
   window.addEventListener('keydown', (e)=>{
     if(e.code==='Space'){
-      const isInput = document.activeElement && (document.activeElement.tagName==='INPUT' || document.activeElement.tagName==='TEXTAREA' || document.activeElement.isContentEditable);
-      if(isInput) return;
+      const a=document.activeElement;
+      if(a && (a.tagName==='INPUT'||a.tagName==='TEXTAREA'||a.isContentEditable)) return;
       e.preventDefault();
       if(state==='idle') startSpin(); else if(state==='spinning') beginStop(false);
     }
     if(e.key==='/'){ e.preventDefault(); openConsole(); }
   });
 
-  /* ==== 콘솔 명령 ==== */
   function openConsole(){ el.console.classList.add('show'); el.cmd.value='/'; el.cmd.focus(); el.cmd.setSelectionRange(el.cmd.value.length,el.cmd.value.length); }
   function closeConsole(){ el.console.classList.remove('show'); el.cmd.blur(); }
-
   el.cmd.addEventListener('keydown',(e)=>{
     if(e.key==='Escape'){ e.preventDefault(); closeConsole(); return; }
-    if(e.key==='Enter'){ e.preventDefault(); const v = el.cmd.value.trim(); runCommand(v); el.cmd.value=''; closeConsole(); }
+    if(e.key==='Enter'){ e.preventDefault(); const v=el.cmd.value.trim(); runCommand(v); el.cmd.value=''; closeConsole(); }
   });
-
   function runCommand(cmd){
     if(cmd==='/dev'){ devMode=true; updateDev(true); return; }
     if(cmd==='/devoff'){ devMode=false; updateDev(false); return; }
@@ -450,70 +440,92 @@
     }
   }
 
-  /* ==== 정산/로그/DEV ==== */
-  const logs = [];
+  // ========= Settle / Dev =========
+  const logs=[];
   function settle(){
-    const idx = reels.map(r => {
-      let k = Math.round(r.pos) % N; if(k<0) k+=N; return k;
-    });
+    const idx = reels.map(r => { let k = Math.round(r.pos)%N; if(k<0) k+=N; return k; });
     const info = payoutFor(idx);
     const bet = CFG.cost;
-    const payout = bet * (info.multiplier||0);
+    const payout = bet*(info.multiplier||0);
     const delta = -bet + payout;
     setMoney(bank + payout, true);
 
     if(info.multiplier>=1000 && info.symbols.every(s=>s==='7')) showJackpot();
 
-    logs.unshift({
-      t:new Date().toLocaleTimeString(),
-      sym:info.symbols.join(' '),
-      bet,payout,delta,bank,
-      note: (info.multiplier>=1000 && info.symbols[0]==='7' && info.symbols[1]==='7' && info.symbols[2]==='7')?'JACKPOT':''
-    });
+    logs.unshift({t:new Date().toLocaleTimeString(), sym:info.symbols.join(' '), bet, payout, delta, bank, note:(info.multiplier>=1000&&info.symbols.every(s=>s==='7'))?'JACKPOT':''});
     if(logs.length>30) logs.pop();
     updateDev();
     planIdx=null;
   }
-
+  function calcRTPUI(){
+    const w = SYMBOLS.map(s=>({s, w:CFG.weights[s]}));
+    const sum = w.reduce((a,b)=>a+b,0);
+    const p = w.map(o=>o.w/sum);
+    const pay3 = SYMBOLS.map(s=>`${s}×3:x${CFG.pay3[s]||0}`).join('  |  ');
+    const pay2 = SYMBOLS.map(s=>`${s}×2:x${CFG.pay2[s]||0}`).join('  |  ');
+    el.rules.innerHTML = `<div><b>weights</b> → ${SYMBOLS.map((s,i)=>`${s}:${CFG.weights[s]} (p=${p[i].toFixed(3)})`).join('  ·  ')}</div>
+    <div style="margin-top:6px"><b>payout 3</b> → ${pay3}</div>
+    <div><b>payout 2</b> → ${pay2}</div>
+    <div class="muted" style="margin-top:4px">line: middle only, reels independent; randomness locks when you press stop</div>`;
+    const rtp = calcRTP();
+    el.rtp.textContent = `RTP≈ ${(rtp*100).toFixed(2)}% (bet=1 baseline)`;
+  }
   function updateDev(toggle){
     if(toggle!==undefined) el.dev.classList.toggle('show', !!toggle);
     else el.dev.classList.toggle('show', devMode);
     if(!devMode) return;
-
-    // 규칙/배당/확률
-    const w = SYMBOLS.map(s=>({s, w:CFG.weights[s]}));
-    const sum = w.reduce((a,b)=>a+b.w,0);
-    const p = w.map(o=>o.w/sum);
-    const pay3 = SYMBOLS.map(s=>`${s}×3:x${CFG.pay3[s]||0}`).join('  |  ');
-    const pay2 = SYMBOLS.map(s=>`${s}×2:x${CFG.pay2[s]||0}`).join('  |  ');
-    el.rules.innerHTML = `
-      <div><b>weights</b> → ${SYMBOLS.map((s,i)=>`${s}:${CFG.weights[s]} (p=${p[i].toFixed(3)})`).join('  ·  ')}</div>
-      <div style="margin-top:6px"><b>payout 3</b> → ${pay3}</div>
-      <div><b>payout 2</b> → ${pay2}</div>
-      <div class="muted" style="margin-top:4px">line: middle only, reels independent; randomness locked when you press stop</div>
-    `;
-    const rtp = calcRTP();
-    el.rtp.textContent = `RTP≈ ${(rtp*100).toFixed(2)}% (bet=1 baseline)`;
-
+    calcRTPUI();
     el.logs.innerHTML = logs.map(L=>(
       `<tr>
-         <td class="muted">${L.t}</td>
-         <td>${L.sym}</td>
-         <td>${L.bet.toLocaleString()}</td>
-         <td>${L.payout.toLocaleString()}</td>
-         <td style="color:${L.delta>=0?'#69f169':'#ff6b6b'}">${L.delta>=0?'+':''}${L.delta.toLocaleString()}</td>
-         <td>${L.bank.toLocaleString()}</td>
-         <td class="muted">${L.note||''}</td>
-       </tr>`
+        <td class="muted">${L.t}</td>
+        <td>${L.sym}</td>
+        <td>${L.bet.toLocaleString()}</td>
+        <td>${L.payout.toLocaleString()}</td>
+        <td style="color:${L.delta>=0?'#69f169':'#ff6b6b'}">${L.delta>=0?'+':''}${L.delta.toLocaleString()}</td>
+        <td>${L.bank.toLocaleString()}</td>
+        <td class="muted">${L.note||''}</td>
+      </tr>`
     )).join('');
   }
 
-  /* ==== INIT ==== */
-  function init(){
-    renderMoneyDigits(bank);
-    drawAll();
+  // ========= 초기 표시: 폰트 로드 전에도 박스/777 보이게 =========
+  function drawBoxesOnly(){
+    ctx.clearRect(0,0,el.cvs.width,el.cvs.height);
+    for(let i=0;i<CFG.reels;i++){
+      const rw = Math.floor(CFG.reelW*DPR), rh = Math.floor(CFG.reelH*DPR), gap = Math.floor(CFG.gap*DPR);
+      const totalW = rw*CFG.reels + gap*(CFG.reels-1);
+      const x0 = Math.floor((el.cvs.width - totalW)/2) + i*(rw+gap);
+      const y0 = Math.floor((el.cvs.height - rh)/2);
+      ctx.save();
+      rrect(x0,y0,rw,rh,Math.floor(12*DPR));
+      ctx.fillStyle='#141414'; ctx.fill();
+      ctx.strokeStyle='#2f2f2f'; ctx.lineWidth=2*DPR; ctx.stroke();
+      ctx.clip();
+      // placeholder 7
+      ctx.fillStyle='#fff';
+      ctx.font = `${Math.floor(rh*0.55)}px "Noto Color Emoji","Noto Sans","Noto Sans KR",sans-serif`;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('7', x0+rw/2, y0+rh/2);
+      ctx.restore();
+    }
   }
-  init();
+
+  // ========= INIT =========
+  (async function init(){
+    // 돈 숫자 먼저 복구 렌더
+    renderMoneyDigits(bank);
+
+    // 박스/플레이스홀더 먼저
+    drawBoxesOnly();
+
+    // 폰트 로드 후 스프라이트 생성 → 실제 777 표시
+    await makeSheetAfterFonts();
+    reels.forEach(r=>{ r.pos = IDX['7']; });
+    drawAll();
+
+    // DEV 패널은 계산 내용 갱신
+    calcRTPUI();
+  })();
 })();
 </script>
 </body>
